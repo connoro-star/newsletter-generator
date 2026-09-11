@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newsletter HTML Builder</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1e222b; --line:#2b3140;
+    --text:#e7e9ee; --muted:#9aa3b2; --accent:#e01a4f; --accent-2:#3b82f6;
+    --ok:#2d8e3c; --warn:#c2860a; --radius:10px;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 var(--sans);overflow:hidden}
+  button,input,select,textarea{font:inherit;color:inherit}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);
+    border-bottom:1px solid var(--line);height:56px;flex-wrap:nowrap}
+  .brandmark{display:flex;align-items:center;gap:9px;margin-right:6px;white-space:nowrap}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .brandmark h1{font-size:14px;margin:0;font-weight:650;letter-spacing:.2px}
+  .spacer{flex:1}
+  .btn{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;
+    cursor:pointer;white-space:nowrap;transition:.12s;font-size:13px}
+  .btn:hover{background:#252a35;border-color:#3a4253}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.ghost{background:transparent}
+  .btn.sm{padding:4px 8px;font-size:12px;border-radius:6px}
+  .btn.icon{padding:4px 7px;font-size:12px;line-height:1;border-radius:6px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* ---------- layout ---------- */
+  .wrap{display:flex;height:calc(100% - 56px)}
+  .left{width:47%;min-width:380px;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .right{flex:1;display:flex;flex-direction:column;min-width:0}
+  .scroll{overflow-y:auto;padding:14px;flex:1}
+  .scroll::-webkit-scrollbar{width:10px}
+  .scroll::-webkit-scrollbar-thumb{background:#2b3140;border-radius:6px}
+
+  /* ---------- settings ---------- */
+  .settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:14px}
+  .settings label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+  .inp{width:100%;background:#0f1218;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:13px}
+  .inp:focus{outline:none;border-color:var(--accent-2)}
+  textarea.inp{resize:vertical;min-height:62px;line-height:1.4}
+  input[type=color].inp{padding:2px;height:33px;cursor:pointer}
+
+  /* ---------- block cards ---------- */
+  .block{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c,var(--line));
+    border-radius:var(--radius);margin-bottom:11px;overflow:hidden}
+  .block.collapsed .block-body{display:none}
+  .bhead{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--panel-2);cursor:grab;user-select:none}
+  @supports (background:color-mix(in srgb,red,blue)){
+    .bhead{background:color-mix(in srgb, var(--c,var(--panel-2)) 13%, var(--panel-2))}
+  }
+  .tdot{width:9px;height:9px;border-radius:50%;background:var(--c,var(--muted));flex-shrink:0}
+  .bhead:active{cursor:grabbing}
+  .block.dragover{border-color:var(--accent-2);box-shadow:0 0 0 1px var(--accent-2)}
+  .bhead .grip{color:#5b6577;font-size:13px;letter-spacing:-1px}
+  .btype{font-weight:650;font-size:13px;color:var(--c,var(--text))}
+  .bsub{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+  .block-body{padding:12px}
+  .field{margin-bottom:10px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+  /* ---------- repeatable items ---------- */
+  .item{border:1px solid var(--line);border-left:2px solid var(--c,var(--line));
+    border-radius:8px;padding:10px;margin-bottom:9px;background:#131722}
+  .ihead{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+  .ihead .num{background:var(--panel-2);border:1px solid var(--line);border-radius:5px;
+    width:21px;height:21px;display:grid;place-items:center;font-size:11px;color:var(--muted);flex-shrink:0}
+  .ihead .ttl{flex:1;min-width:0;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ---------- url fetch row ---------- */
+  .fetchrow{display:flex;gap:6px}
+  .fetchrow .inp{flex:1;min-width:0}
+  .thumb{width:100%;height:74px;object-fit:cover;border-radius:6px;border:1px solid var(--line);
+    margin-top:6px;background:#0b0d12;display:block}
+  .thumb.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover}
+
+  /* ---------- add bar ---------- */
+  .addbar{display:flex;flex-wrap:wrap;gap:7px;padding:12px 14px;border-top:1px solid var(--line);background:var(--panel)}
+  .addbar .btn{font-size:12px;padding:6px 10px;display:inline-flex;align-items:center;gap:7px}
+  .addbar .btn::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c);flex-shrink:0}
+  .addbar .btn:hover{border-color:var(--c)}
+
+  /* ---------- right pane ---------- */
+  .tabs{display:flex;gap:2px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+  .tab{padding:6px 13px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--muted);border:1px solid transparent}
+  .tab.active{background:var(--panel-2);color:var(--text);border-color:var(--line)}
+  .pane{flex:1;display:none;min-height:0}
+  .pane.active{display:flex;flex-direction:column}
+  #preview{flex:1;width:100%;border:0;background:#fff}
+  #out{flex:1;width:100%;border:0;background:#0b0d12;color:#b9c6d8;font:12px/1.55 var(--mono);
+    padding:14px;resize:none;white-space:pre-wrap;word-break:break-all}
+  #out:focus{outline:none}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);
+    background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 18px;
+    box-shadow:0 10px 32px rgba(0,0,0,.55);transition:.25s;opacity:0;pointer-events:none;z-index:99;font-size:13px}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast.err{border-color:var(--accent)}
+  .empty{text-align:center;color:var(--muted);padding:46px 20px;border:1px dashed var(--line);border-radius:var(--radius)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+  .badge{background:var(--panel-2);border:1px solid var(--line);border-radius:20px;
+    padding:2px 9px;font-size:11px;color:var(--muted)}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid #4b5563;border-top-color:transparent;
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media(max-width:900px){
+    .wrap{flex-direction:column}
+    .left{width:100%;min-width:0;border-right:0;border-bottom:1px solid var(--line);height:55%}
+    .right{height:45%}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brandmark"><span class="dot"></span><h1>Newsletter HTML Builder</h1></div>
+  <span class="badge" id="blockCount">0 blocks</span>
+  <span class="spacer"></span>
+  <button class="btn sm" id="btnImport">Import JSON</button>
+  <button class="btn sm" id="btnExport">Save JSON</button>
+  <button class="btn sm" id="btnSample">Load sample</button>
+  <button class="btn sm" id="btnClear">Clear</button>
+  <button class="btn sm" id="btnDownload">Download .html</button>
+  <button class="btn primary" id="btnCopy">Copy HTML for CMS</button>
+  <input type="file" id="fileImport" accept="application/json,.json" hidden>
+</div>
+
+<div class="wrap">
+  <div class="left">
+    <div class="scroll">
+      <div class="settings">
+        <div>
+          <label for="setAccent">Accent colour</label>
+          <input type="color" class="inp" id="setAccent" value="#e01a4f">
+        </div>
+        <div>
+          <label for="setWidth">Block width (px)</label>
+          <input type="number" class="inp" id="setWidth" value="560" min="320" max="700" step="10">
+        </div>
+        <div>
+          <label for="setTag">Amazon affiliate tag</label>
+          <input type="text" class="inp" id="setTag" placeholder="ap-newsletter04-20">
+        </div>
+      </div>
+      <div id="blocks"></div>
+    </div>
+    <div class="addbar" id="addbar"></div>
+  </div>
+
+  <div class="right">
+    <div class="tabs">
+      <div class="tab active" data-pane="preview">Preview</div>
+      <div class="tab" data-pane="code">HTML</div>
+      <span class="spacer"></span>
+      <span class="badge">600px</span>
+      <span class="badge" id="sizeBadge">0 KB</span>
+    </div>
+    <div class="pane active" id="pane-preview"><iframe id="preview" title="Newsletter preview"></iframe></div>
+    <div class="pane" id="pane-code"><textarea id="out" spellcheck="false" readonly></textarea></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Newsletter HTML Builder
+   Block-based editor -> email-safe table HTML for CMS paste.
+   ============================================================ */
+
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const uid = () => 'b' + Math.random().toString(36).slice(2, 9);
+
+/* ---------- escaping ----------
+   Escapes HTML specials, then converts every non-ASCII character to a
+   numeric entity so the output survives any CMS / email client encoding. */
+function esc(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/[\u00A0-\uFFFF]/g, c => '&#' + c.charCodeAt(0) + ';');
+}
+/* URLs: escape quotes/amps only - do not entity-encode the path */
+function escUrl(v) {
+  return String(v ?? '').trim().replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+const num = v => {
+  const n = parseFloat(String(v ?? '').replace(/[^0-9.]/g, ''));
+  return isFinite(n) ? n : null;
+};
+
+/* ============================================================
+   BLOCK DEFINITIONS
+   ============================================================ */
+const TYPES = {
+  featured: {
+    color: '#f59e0b',
+    label: 'Featured Article',
+    add: 'Featured Article',
+    summary: b => b.headline,
+    defaults: () => ({
+      headline: '', articleUrl: '', dek: '', body: '',
+      imageUrl: '', imageAlt: '',
+      cta: 'Read More'
+    }),
+    fields: [
+      { k: 'articleUrl', l: 'Article URL', t: 'url', fetch: 'featured' },
+      { k: 'headline',   l: 'Headline (links to the article URL)', t: 'text' },
+      { k: 'dek',        l: 'Sub-headline / dek', t: 'text' },
+      { k: 'imageUrl',   l: 'Hero image URL', t: 'url', img: true },
+      { k: 'imageAlt',   l: 'Hero image alt text', t: 'text' },
+      { k: 'body',       l: 'Summary paragraph', t: 'textarea' },
+      { k: 'cta',        l: 'Button label', t: 'text' }
+    ]
+  },
+
+  heading: {
+    color: '#a78bfa',
+    label: 'Section Heading',
+    add: 'Heading',
+    summary: b => b.text,
+    defaults: () => ({ text: 'Today’s Hits' }),
+    fields: [{ k: 'text', l: 'Heading text', t: 'text' }]
+  },
+
+  hits: {
+    color: '#38bdf8',
+    label: 'Article List (Today’s Hits)',
+    add: 'Article List',
+    defaultItems: 5,
+    thumb: 200,
+    summary: b => `${b.items.length} article${b.items.length === 1 ? '' : 's'}`,
+    defaults: () => ({ items: [] }),
+    itemLabel: 'Article',
+    itemSummary: i => i.title,
+    itemDefaults: () => ({ url: '', title: '', subtitle: '', imageUrl: '', imageAlt: '' }),
+    itemFields: [
+      { k: 'url',      l: 'Article URL', t: 'url', fetch: 'hits' },
+      { k: 'title',    l: 'Title',    t: 'text' },
+      { k: 'subtitle', l: 'Subtitle', t: 'text' },
+      { k: 'imageUrl', l: 'Thumbnail URL', t: 'url', img: true },
+      { k: 'imageAlt', l: 'Image alt text', t: 'text' }
+    ]
+  },
+
+  deals: {
+    color: '#34d399',
+    label: 'Deal Grid (2 per row)',
+    add: 'Deal Grid',
+    summary: b => `${b.items.length} deal${b.items.length === 1 ? '' : 's'}`,
+    defaults: () => ({ items: [], cta: 'GET DEAL' }),
+    fields: [{ k: 'cta', l: 'Button label', t: 'text' }],
+    itemLabel: 'Deal',
+    itemSummary: i => i.title,
+    itemDefaults: () => ({ url: '', title: '', imageUrl: '', imageAlt: '', price: '', was: '', badge: '' }),
+    itemFields: [
+      { k: 'url',      l: 'Product URL (Amazon tag auto-applied)', t: 'url', fetch: 'deals' },
+      { k: 'title',    l: 'Product name', t: 'text' },
+      { k: 'price',    l: 'Sale price', t: 'text', third: true },
+      { k: 'was',      l: 'List price', t: 'text', third: true },
+      { k: 'badge',    l: 'Badge (auto)', t: 'text', third: true, placeholder: 'auto' },
+      { k: 'imageUrl', l: 'Product image URL', t: 'url', img: true },
+      { k: 'imageAlt', l: 'Image alt text', t: 'text' }
+    ]
+  },
+
+  icymi: {
+    color: '#fb7185',
+    label: 'Link List (ICYMI)',
+    add: 'Link List',
+    summary: b => `${b.items.length} link${b.items.length === 1 ? '' : 's'}`,
+    defaults: () => ({ items: [] }),
+    itemLabel: 'Link',
+    itemSummary: i => i.title,
+    itemDefaults: () => ({ url: '', title: '' }),
+    itemFields: [
+      { k: 'url',   l: 'URL', t: 'url', fetch: 'icymi' },
+      { k: 'title', l: 'Link text', t: 'text' }
+    ]
+  },
+
+  disclaimer: {
+    color: '#94a3b8',
+    label: 'Affiliate Disclaimer',
+    add: 'Disclaimer',
+    summary: b => b.text,
+    defaults: () => ({ text: 'Readers like you help support Android Police. When you buy through links in this newsletter, we may earn a small affiliate commission, at no extra cost to you.' }),
+    fields: [{ k: 'text', l: 'Disclaimer text', t: 'textarea' }]
+  },
+
+  custom: {
+    color: '#e879f9',
+    label: 'Custom HTML',
+    add: 'Custom HTML',
+    summary: () => 'raw markup',
+    defaults: () => ({ html: '' }),
+    fields: [{ k: 'html', l: 'Raw HTML (inserted as-is)', t: 'textarea' }]
+  }
+};
+
+/* ============================================================
+   HTML GENERATORS
+
+   Every top-level block renders inside shell(), so all section types share
+   one column with identical left and right edges.
+
+   The rule that makes it work: padding and borders live on the inner <td>,
+   never on the <table> itself. CSS width is content-box, so a
+   <table width="100%"> carrying 15px padding and a 3px border renders 36px
+   wider than its siblings - which is exactly how the four blocks drifted
+   apart. Widths are declared twice on purpose: the width attribute for
+   Outlook, max-width for everything else.
+   ============================================================ */
+
+function shell(inner, B, tdStyle, tableExtra = '') {
+  return `<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:${B}px;margin:0 auto;${tableExtra}border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" width="${B}">
+\t<tbody>
+\t\t<tr>
+\t\t\t<td style="${tdStyle}">
+${inner}
+\t\t\t</td>
+\t\t</tr>
+\t</tbody>
+</table>`;
+}
+
+/* Inner width of the featured card: block width less 15px padding and 1px
+   border on each side. */
+const innerWidth = B => B - 32;
+
+function gFeatured(b, s) {
+  const B = s.width, C = innerWidth(B), rgb = hexToRgb(s.accent);
+  const out = [];
+
+  /* The whole tile is one link, so nothing inside may be an anchor of its own -
+     nested <a> is invalid and the parser breaks it apart. The headline, image
+     and button are therefore plain elements, and every text colour is stated
+     explicitly so the card never inherits default link blue or an underline. */
+
+  if (b.headline) {
+    /* The dek reads as part of the headline, so it sits tight beneath it.
+       With no dek the headline keeps the full 16px gap to whatever follows. */
+    const headGap = b.dek ? 6 : 16;
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+\t\t\t\t\t<tbody>
+\t\t\t\t\t\t<tr>
+\t\t\t\t\t\t\t<td style="padding-bottom: ${headGap}px;">
+\t\t\t\t\t\t\t<h2 style="margin: 0px; font-size: 20px; color: #000000;">${esc(b.headline)}</h2>
+\t\t\t\t\t\t\t</td>
+\t\t\t\t\t\t</tr>
+\t\t\t\t\t</tbody>
+\t\t\t\t</table>`);
+  }
+
+  if (b.dek) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 16px;color: #333333;">${esc(b.dek)}</p>`);
+
+  if (b.imageUrl) {
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+\t\t\t\t\t<tbody>
+\t\t\t\t\t\t<tr>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 16px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" width="${C}" /></td>
+\t\t\t\t\t\t</tr>
+\t\t\t\t\t</tbody>
+\t\t\t\t</table>`);
+  }
+
+  if (b.body) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 16px;color: #333333;">${esc(b.body)}</p>`);
+
+  if (b.cta) {
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+\t\t\t\t\t<tbody>
+\t\t\t\t\t\t<tr>
+\t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><span style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</span></td>
+\t\t\t\t\t\t</tr>
+\t\t\t\t\t</tbody>
+\t\t\t\t</table>`);
+  }
+
+  const inner = out.join('\n\n');
+
+  /* Padding sits on the link, not the cell, so the click target covers the
+     whole bordered tile rather than stopping at the content edge. */
+  const wrapped = b.articleUrl
+    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" style="display:block;padding:15px;color:#333333;text-decoration:none;" target="_blank">
+${inner}
+\t\t\t</a>`
+    : `\t\t\t<div style="padding:15px;">
+${inner}
+\t\t\t</div>`;
+
+  return shell(wrapped, B,
+    'padding:0;border:1px solid rgb(220, 220, 220);border-radius:10px;',
+    'margin:0 auto 16px;');
+}
+
+function gHeading(b, s) {
+  return shell(
+    `\t\t\t<h2 style="margin:0; font-size:20px; color:#333;">${esc(b.text)}</h2>`,
+    s.width, 'padding:0 0 20px 0;');
+}
+
+function gHits(b, s) {
+  const B = s.width, T = TYPES.hits.thumb;
+  return b.items.filter(i => i.title || i.url).map(i => {
+    const u = escUrl(i.url);
+    const thumb = i.imageUrl
+      ? `<a href="${u}" target="_blank"><img alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${T}px; height: auto;" width="${T}" /></a>`
+      : '&nbsp;';
+    const sub = i.subtitle
+      ? `<span style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:400;color:#6B7280;line-height:1.5;">${esc(i.subtitle)}</span>`
+      : '';
+    const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
+\t\t\t\t<tbody>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td align="center" style="padding:0 12px 0 0;width:${T}px;" valign="middle" width="${T}">${thumb}</td>
+\t\t\t\t\t\t<td style="padding:0;" valign="middle"><a href="${u}" style="text-decoration:none;display:block;"><span style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
+\t\t\t\t\t</tr>
+\t\t\t\t</tbody>
+\t\t\t</table>`;
+    return shell(inner, B,
+      'padding:12px;border:1px solid #E7E8EC;border-radius:10px;background-color:#FFFFFF;',
+      'margin:0 auto 10px;');
+  }).join('\n\n');
+}
+
+function dealCell(i, s, side, W2) {
+  /* Outer edges sit flush with the column; the 8px gutter is between the two
+     cards only, so a deal row lines up with every other block. */
+  const pad = side === 'left' ? 'padding:4px 4px 4px 0;' : 'padding:4px 0 4px 4px;';
+  if (!i) return `\t\t\t<td style="width:50%;${pad}" valign="top" width="${W2}">&nbsp;</td>`;
+
+  const u = escUrl(applyTag(i.url, s.tag));
+  const badge = (i.badge || autoBadge(i.price, i.was) || '').trim();
+  const badgeHtml = badge
+    ? `<span class="nl-save-badge" style="display:inline-block;background-color:#2d8e3c;color:#ffffff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:baseline;line-height:1;">${esc(badge)}</span>`
+    : '';
+  const wasHtml = i.was
+    ? `<span style="font-size:14px;color:#999;text-decoration:line-through;margin-right:8px;">${esc(i.was)}</span>`
+    : '';
+  const imgHtml = i.imageUrl
+    ? `<div style="height:150px;overflow:hidden;line-height:0;font-size:0;border-radius:12px 12px 0 0;"><a href="${u}" rel="noopener noreferrer" target="_blank"><img alt="${esc(i.imageAlt || i.title)}" src="${escUrl(i.imageUrl)}" style="display:block;width:100%;max-width:${W2}px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#666;" width="${W2}" /></a></div>`
+    : '';
+
+  return `\t\t\t<td align="center" style="width:50%;${pad}" valign="top" width="${W2}">
+\t\t\t<table border="0" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e5e5e7;border-radius:12px;border-collapse:separate;table-layout:fixed;max-width:${W2}px;overflow:hidden;" width="${W2}">
+\t\t\t\t<tbody>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td align="center" style="padding:0;">
+\t\t\t\t\t\t${imgHtml}
+\t\t\t\t\t\t</td>
+\t\t\t\t\t</tr>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td style="padding:16px 16px 8px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.3;mso-line-height-rule:exactly;color:#1d1d1f;word-wrap:break-word;">${esc(i.title)}</td>
+\t\t\t\t\t</tr>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td class="nl-price-row" style="padding:0 16px 12px 16px;mso-line-height-rule:exactly;"><span style="font-size:24px;font-weight:700;color:#1d1d1f;margin-right:8px;">${esc(i.price)}</span>${wasHtml}${badgeHtml}</td>
+\t\t\t\t\t</tr>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td align="center" style="padding:0 16px 16px 16px;mso-line-height-rule:exactly;">
+\t\t\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+\t\t\t\t\t\t\t<tbody>
+\t\t\t\t\t\t\t\t<tr>
+\t\t\t\t\t\t\t\t\t<td align="center" bgcolor="${s.accent}" style="background-color:${s.accent};border-radius:6px;padding:10px 24px;"><a href="${u}" rel="noopener noreferrer" style="color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:700;text-decoration:none;display:inline-block;" target="_blank">${esc(s.dealCta)}</a></td>
+\t\t\t\t\t\t\t\t</tr>
+\t\t\t\t\t\t\t</tbody>
+\t\t\t\t\t\t</table>
+\t\t\t\t\t\t</td>
+\t\t\t\t\t</tr>
+\t\t\t\t</tbody>
+\t\t\t</table>
+\t\t\t</td>`;
+}
+
+function gDeals(b, s) {
+  const items = b.items.filter(i => i.title || i.url);
+  const B = s.width;
+  const W2 = Math.floor((B - 8) / 2);
+  const cfg = { ...s, dealCta: b.cta || 'GET DEAL' };
+  const rows = [];
+
+  for (let n = 0; n < items.length; n += 2) {
+    rows.push(`<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:${B}px;margin:4px auto;table-layout:fixed;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" width="${B}">
+\t<tbody>
+\t\t<tr>
+${dealCell(items[n], cfg, 'left', W2)}
+${dealCell(items[n + 1], cfg, 'right', W2)}
+\t\t</tr>
+\t</tbody>
+</table>`);
+  }
+  return rows.join('\n\n');
+}
+
+/* Built from table rows rather than <ul>: every email client applies its own
+   default list indent (Outlook's is large and not overridable), which is what
+   pushed this block out of line with the others. A 16px bullet cell puts the
+   marker flush with the column and keeps the hanging indent on wrapped lines. */
+function gIcymi(b, s) {
+  const rows = b.items.filter(i => i.title || i.url).map(i =>
+`\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:#333333;" valign="top" width="16">&bull;</td>
+\t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;" valign="top"><a href="${escUrl(i.url)}">${esc(i.title)}</a></td>
+\t\t\t\t\t</tr>`).join('\n');
+  if (!rows) return '';
+  const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
+\t\t\t\t<tbody>
+${rows}
+\t\t\t\t</tbody>
+\t\t\t</table>`;
+  return shell(inner, s.width, 'padding:0;');
+}
+
+const SPACER = `<p style="margin: 0; padding-bottom: 16px;">&nbsp;</p>`;
+
+const gDisclaimer = (b, s) => shell(
+  `\t\t\t<p style="font-size:12px;font-style:italic;color:#888;text-align:center;margin:24px 16px 8px 16px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${esc(b.text)}</p>`,
+  s.width, 'padding:0;');
+
+const GEN = {
+  featured: gFeatured, heading: gHeading, hits: gHits, deals: gDeals,
+  icymi: gIcymi, disclaimer: gDisclaimer,
+  custom: b => (b.html || '').trim()
+};
+
+/* ---------- helpers ---------- */
+function hexToRgb(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  return m ? `rgb(${parseInt(m[1],16)}, ${parseInt(m[2],16)}, ${parseInt(m[3],16)})` : (hex || '#e01a4f');
+}
+function autoBadge(price, was) {
+  const p = num(price), w = num(was);
+  if (p === null || w === null || w <= 0 || p >= w) return '';
+  return 'SAVE ' + Math.round((1 - p / w) * 100) + '%';
+}
+/* Append/replace the Amazon affiliate tag on amazon.* links only */
+function applyTag(url, tag) {
+  const u = String(url || '').trim();
+  if (!u || !tag) return u;
+  if (!/^https?:\/\/([\w-]+\.)*amazon\.[a-z.]+\//i.test(u)) return u;
+  try {
+    const parsed = new URL(u);
+    parsed.searchParams.set('tag', tag);
+    return parsed.toString();
+  } catch { return u; }
+}
+
+/* ---------- assemble the whole newsletter ----------
+   Vertical spacing is applied automatically so it can never be forgotten or
+   doubled up by hand: a blank line above every section heading, and one after
+   every deal grid (they sit tight against whatever follows). This reproduces
+   the approved layout exactly. */
+function buildHTML() {
+  const s = state.settings;
+  const parts = [];
+
+  let prev = null;
+  for (const b of state.blocks) {
+    let html = '';
+    try { html = GEN[b.type](b, s) || ''; } catch { html = ''; }
+    if (!html.trim()) continue;
+
+    if (b.type === 'heading' && parts.length) parts.push(SPACER);
+
+    /* A link list that runs straight on from another section - a deal grid,
+       most often - needs its own gap. When its own heading introduces it the
+       heading already provides the separation, so no extra line there. */
+    if (b.type === 'icymi' && parts.length && prev !== 'heading') parts.push(SPACER);
+
+    parts.push(html);
+    if (b.type === 'deals') parts.push(SPACER);
+    prev = b.type;
+  }
+  return parts.join('\n\n');
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const STORAGE_KEY = 'nl-builder-v1';
+let state = { settings: { accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 }, blocks: [] };
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.blocks)) return false;
+    state = normalise(parsed);
+    return true;
+  } catch { return false; }
+}
+/* Rebuild an imported object against the current schema so missing keys
+   (from an older save file) get their defaults instead of undefined. */
+function normalise(obj) {
+  const s = obj.settings || {};
+  /* v1 stored the featured card's inner text column (530). v2 stores the outer
+     width every block shares; 560 is the same layout measured from the outside. */
+  let width = parseInt(s.width, 10) || 560;
+  if (!s.v && width === 530) width = 560;
+  const out = {
+    settings: { accent: s.accent || '#e01a4f', width, tag: s.tag ?? 'ap-newsletter04-20', v: 2 },
+    blocks: []
+  };
+  for (const b of (obj.blocks || [])) {
+    const def = TYPES[b.type];
+    if (!def) continue;
+    const block = { id: b.id || uid(), type: b.type, collapsed: !!b.collapsed, ...def.defaults() };
+    for (const f of (def.fields || [])) if (b[f.k] !== undefined) block[f.k] = b[f.k];
+    if (def.itemFields) {
+      block.items = (Array.isArray(b.items) ? b.items : []).map(it => {
+        const item = def.itemDefaults();
+        for (const f of def.itemFields) if (it[f.k] !== undefined) item[f.k] = it[f.k];
+        return item;
+      });
+    }
+    if (b.type === 'custom' && b.html !== undefined) block.html = b.html;
+    out.blocks.push(block);
+  }
+  return out;
+}
+
+function addBlock(type) {
+  const def = TYPES[type];
+  const b = { id: uid(), type, collapsed: false, ...def.defaults() };
+  if (def.itemFields && !b.items.length) {
+    b.items = Array.from({ length: def.defaultItems || 1 }, () => def.itemDefaults());
+  }
+  state.blocks.push(b);
+  renderAll();
+  const el = $(`[data-block="${b.id}"]`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+const blockById = id => state.blocks.find(b => b.id === id);
+
+/* ============================================================
+   EDITOR RENDERING
+   ============================================================ */
+function fieldHtml(f, val, path) {
+  const ph = f.placeholder ? ` placeholder="${f.placeholder}"` : '';
+  const common = `class="inp" data-path="${path}"${ph}`;
+  let control;
+
+  if (f.t === 'textarea') {
+    control = `<textarea ${common} rows="3">${escAttr(val)}</textarea>`;
+  } else if (f.fetch) {
+    control = `<div class="fetchrow">
+        <input type="url" ${common} value="${escAttr(val)}" placeholder="https://...">
+        <button class="btn sm" data-act="fetch" data-path="${path}" title="Fetch title, image, author and date from this URL">Auto-fill</button>
+      </div>`;
+  } else {
+    control = `<input type="text" ${common} value="${escAttr(val)}">`;
+  }
+
+  let extra = '';
+  if (f.img || f.avatar) {
+    const cls = f.avatar ? 'thumb avatar' : 'thumb';
+    extra = `<img class="${cls}" data-thumb alt="" src="${escAttr(val)}"` +
+            `${val ? '' : ' style="display:none"'} onerror="this.style.display='none'">`;
+  }
+  return `<div class="field"><label>${f.l}</label>${control}${extra}</div>`;
+}
+
+const escAttr = v => String(v ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function groupFields(fields, get, prefix) {
+  const out = [];
+  let n = 0;
+  while (n < fields.length) {
+    const f = fields[n];
+    if (f.half && fields[n + 1] && fields[n + 1].half) {
+      out.push(`<div class="grid2">${fieldHtml(f, get(f.k), prefix + f.k)}${fieldHtml(fields[n+1], get(fields[n+1].k), prefix + fields[n+1].k)}</div>`);
+      n += 2;
+    } else if (f.third && fields[n+1]?.third && fields[n+2]?.third) {
+      out.push(`<div class="grid3">${[0,1,2].map(d => fieldHtml(fields[n+d], get(fields[n+d].k), prefix + fields[n+d].k)).join('')}</div>`);
+      n += 3;
+    } else {
+      out.push(fieldHtml(f, get(f.k), prefix + f.k));
+      n++;
+    }
+  }
+  return out.join('');
+}
+
+function renderBlocks() {
+  const host = $('#blocks');
+  if (!state.blocks.length) {
+    host.innerHTML = `<div class="empty">No blocks yet.<br>Add one below, or click <b>Load sample</b> to start from the template.</div>`;
+    return;
+  }
+
+  host.innerHTML = state.blocks.map((b, bi) => {
+    const def = TYPES[b.type];
+    let body = groupFields(def.fields || [], k => b[k], `${b.id}.`);
+
+    if (def.itemFields) {
+      const items = b.items.map((it, ii) => `
+        <div class="item" data-item="${ii}">
+          <div class="ihead">
+            <span class="num">${ii + 1}</span>
+            <span class="ttl">${escAttr(def.itemSummary(it) || def.itemLabel)}</span>
+            <button class="btn icon" data-act="item-up"   data-b="${b.id}" data-i="${ii}" title="Move up">&uarr;</button>
+            <button class="btn icon" data-act="item-down" data-b="${b.id}" data-i="${ii}" title="Move down">&darr;</button>
+            <button class="btn icon" data-act="item-dup"  data-b="${b.id}" data-i="${ii}" title="Duplicate">&#10697;</button>
+            <button class="btn icon" data-act="item-del"  data-b="${b.id}" data-i="${ii}" title="Delete">&times;</button>
+          </div>
+          ${groupFields(def.itemFields, k => it[k], `${b.id}.items.${ii}.`)}
+        </div>`).join('');
+      body += `<div class="items">${items}</div>
+        <button class="btn sm" data-act="item-add" data-b="${b.id}">+ Add ${def.itemLabel}</button>`;
+    }
+
+    return `<div class="block ${b.collapsed ? 'collapsed' : ''}" data-block="${b.id}"
+      style="--c:${def.color}" draggable="true">
+      <div class="bhead" data-act="toggle" data-b="${b.id}">
+        <span class="grip">&#9776;</span>
+        <span class="tdot"></span>
+        <span class="btype">${def.label}</span>
+        <span class="bsub">${escAttr(def.summary(b) || '')}</span>
+        <button class="btn icon" data-act="up"   data-b="${b.id}" title="Move up">&uarr;</button>
+        <button class="btn icon" data-act="down" data-b="${b.id}" title="Move down">&darr;</button>
+        <button class="btn icon" data-act="dup"  data-b="${b.id}" title="Duplicate">&#10697;</button>
+        <button class="btn icon" data-act="del"  data-b="${b.id}" title="Delete">&times;</button>
+      </div>
+      <div class="block-body">${body}</div>
+    </div>`;
+  }).join('');
+}
+
+/* Resolve "blockId.items.2.title" to its container + key */
+function resolvePath(path) {
+  const parts = path.split('.');
+  const b = blockById(parts[0]);
+  if (!b) return null;
+  if (parts[1] === 'items') return { obj: b.items[+parts[2]], key: parts[3], block: b };
+  return { obj: b, key: parts[1], block: b };
+}
+
+function renderOutput() {
+  const html = buildHTML();
+  $('#out').value = html;
+  $('#sizeBadge').textContent = (new Blob([html]).size / 1024).toFixed(1) + ' KB';
+  $('#blockCount').textContent = state.blocks.length + ' block' + (state.blocks.length === 1 ? '' : 's');
+  /* 600px outer width with 20px padding leaves a 560px content column - the
+     width the deal grid is built to, so the preview matches a real inbox. */
+  $('#preview').srcdoc = `<!doctype html><html><head><meta charset="utf-8">
+    <style>
+      html{background:#f4f4f5}
+      body{width:600px;box-sizing:border-box;margin:0 auto;padding:20px;background:#ffffff;
+        font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#222}
+      img{max-width:100%}a{color:${state.settings.accent}}
+      ul{padding-left:20px}li{margin-bottom:8px}
+    </style></head><body>${html}</body></html>`;
+}
+
+function renderAll() { renderBlocks(); renderOutput(); save(); }
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+
+/* Update the card/item summary lines in place - no re-render, so focus survives. */
+function refreshLabels() {
+  for (const b of state.blocks) {
+    const el = $(`[data-block="${b.id}"]`);
+    if (!el) continue;
+    const def = TYPES[b.type];
+    const sub = el.querySelector('.bsub');
+    if (sub) sub.textContent = def.summary(b) || '';
+    if (def.itemFields) {
+      b.items.forEach((it, ii) => {
+        const t = el.querySelector(`.item[data-item="${ii}"] .ttl`);
+        if (t) t.textContent = def.itemSummary(it) || def.itemLabel;
+      });
+    }
+  }
+}
+
+/* Typing: mutate state and patch the view, so focus is never lost. */
+let typeTimer;
+$('#blocks').addEventListener('input', e => {
+  const path = e.target.dataset.path;
+  if (!path) return;
+  const r = resolvePath(path);
+  if (!r || !r.obj) return;
+  r.obj[r.key] = e.target.value;
+
+  const thumb = e.target.closest('.field')?.querySelector('[data-thumb]');
+  if (thumb) {
+    const v = e.target.value.trim();
+    thumb.src = v;
+    thumb.style.display = v ? '' : 'none';
+  }
+
+  clearTimeout(typeTimer);
+  typeTimer = setTimeout(() => { refreshLabels(); renderOutput(); save(); }, 160);
+});
+
+$('#blocks').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const id  = btn.dataset.b;
+  const b   = blockById(id);
+  const i   = btn.dataset.i !== undefined ? +btn.dataset.i : null;
+
+  switch (act) {
+    case 'toggle': b.collapsed = !b.collapsed; renderBlocks(); save(); return;
+    case 'up':   { const n = state.blocks.indexOf(b); if (n > 0) state.blocks.splice(n - 1, 0, state.blocks.splice(n, 1)[0]); break; }
+    case 'down': { const n = state.blocks.indexOf(b); if (n < state.blocks.length - 1) state.blocks.splice(n + 1, 0, state.blocks.splice(n, 1)[0]); break; }
+    case 'dup':  { const n = state.blocks.indexOf(b); state.blocks.splice(n + 1, 0, { ...structuredClone(b), id: uid() }); break; }
+    case 'del':  if (!confirm(`Delete this ${TYPES[b.type].label} block?`)) return;
+                 state.blocks = state.blocks.filter(x => x.id !== id); break;
+    case 'item-add':  b.items.push(TYPES[b.type].itemDefaults()); break;
+    case 'item-up':   if (i > 0) b.items.splice(i - 1, 0, b.items.splice(i, 1)[0]); break;
+    case 'item-down': if (i < b.items.length - 1) b.items.splice(i + 1, 0, b.items.splice(i, 1)[0]); break;
+    case 'item-dup':  b.items.splice(i + 1, 0, structuredClone(b.items[i])); break;
+    case 'item-del':  b.items.splice(i, 1); break;
+    case 'fetch': await autofill(btn); return;
+  }
+  renderAll();
+});
+
+/* ---------- drag to reorder blocks ---------- */
+let dragId = null;
+$('#blocks').addEventListener('dragstart', e => {
+  const el = e.target.closest('.block');
+  if (!el) return;
+  dragId = el.dataset.block;
+  e.dataTransfer.effectAllowed = 'move';
+});
+$('#blocks').addEventListener('dragover', e => {
+  const el = e.target.closest('.block');
+  if (!el || !dragId || el.dataset.block === dragId) return;
+  e.preventDefault();
+  $$('.block').forEach(x => x.classList.remove('dragover'));
+  el.classList.add('dragover');
+});
+$('#blocks').addEventListener('drop', e => {
+  const el = e.target.closest('.block');
+  $$('.block').forEach(x => x.classList.remove('dragover'));
+  if (!el || !dragId) return;
+  e.preventDefault();
+  const from = state.blocks.findIndex(b => b.id === dragId);
+  const to   = state.blocks.findIndex(b => b.id === el.dataset.block);
+  if (from < 0 || to < 0 || from === to) return;
+  state.blocks.splice(to, 0, state.blocks.splice(from, 1)[0]);
+  dragId = null;
+  renderAll();
+});
+$('#blocks').addEventListener('dragend', () => {
+  dragId = null;
+  $$('.block').forEach(x => x.classList.remove('dragover'));
+});
+
+/* ============================================================
+   AUTO-FILL FROM ARTICLE URL
+   Fetches the page through a public CORS proxy and reads its
+   Open Graph / article markup. Nothing is sent anywhere else.
+   ============================================================ */
+/* Readers that re-serve a page with permissive CORS headers.
+   r.jina.ai is primary: it echoes the Origin header (so it works from a
+   file:// page, which sends "Origin: null") and renders JS-heavy pages.
+   Keyless use is rate limited to roughly 20 fetches per minute. */
+const READERS = [
+  { name: 'r.jina.ai',
+    url:  u => 'https://r.jina.ai/' + u,
+    init: { headers: { 'X-Return-Format': 'html' } } },
+  { name: 'allorigins',
+    url:  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    init: {} }
+];
+
+async function fetchDoc(url) {
+  const problems = [];
+  for (const r of READERS) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 30000);
+      let res;
+      try { res = await fetch(r.url(url), { ...r.init, signal: ctrl.signal }); }
+      finally { clearTimeout(timer); }
+
+      if (res.status === 429) throw new Error('rate limited, wait a minute');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const html = await res.text();
+      if (html.length < 500) throw new Error('empty response');
+      return new DOMParser().parseFromString(html, 'text/html');
+    } catch (e) {
+      problems.push(r.name + ': ' + (e.name === 'AbortError' ? 'timed out' : e.message));
+    }
+  }
+  throw new Error(problems.join(' / '));
+}
+
+const meta = (doc, sel) => doc.querySelector(sel)?.getAttribute('content')?.trim() || '';
+const abs  = (src, base) => { try { return src ? new URL(src, base).href : ''; } catch { return ''; } };
+const tidy = t => (t || '').replace(/\s+/g, ' ').trim();
+
+/* CDNs append resize params to og:image; drop them so the newsletter uses the
+   full-size original, as the approved template does. */
+const RESIZE_PARAMS = ['w', 'h', 'fit', 'crop', 'q', 'dpr', 'format', 'quality', 'strip'];
+function cleanImg(src) {
+  if (!src) return '';
+  try {
+    const u = new URL(src);
+    for (const k of [...u.searchParams.keys()]) {
+      if (RESIZE_PARAMS.includes(k.toLowerCase())) u.searchParams.delete(k);
+    }
+    /* Some CDNs percent-encode the path separators. Both forms resolve, but a
+       literal % breaks if the CMS re-escapes it to %25, so normalise it back. */
+    u.pathname = u.pathname.replace(/%2F/gi, '/');
+    return u.toString();
+  } catch { return src; }
+}
+
+function readImg(el, base) {
+  if (!el) return '';
+  const src = el.getAttribute('src') || el.getAttribute('data-src') ||
+              el.getAttribute('data-lazy-src') || el.getAttribute('data-original') ||
+              (el.getAttribute('srcset') || '').split(',')[0]?.trim().split(' ')[0] || '';
+  return cleanImg(abs(src, base));
+}
+
+/* Amazon serves no og: tags, so product pages need their own selectors. */
+function scrapeAmazon(doc) {
+  const txt = sel => tidy(doc.querySelector(sel)?.textContent);
+
+  let title = txt('#productTitle');
+  if (!title) title = tidy((doc.title || '').replace(/^Amazon\.com\s*:\s*/i, '').split(/\s+:\s+/)[0]);
+  title = title.split('|')[0].trim();          // drop the spec dump after the first pipe
+
+  const price = txt('#corePrice_feature_div .a-offscreen, .a-price .a-offscreen');
+  const was   = txt('.a-text-price.apex-basisprice-value .a-offscreen, ' +
+                    '.basisPrice .a-offscreen, .a-text-price[data-a-strike="true"] .a-offscreen');
+
+  let image = '';
+  const im = doc.querySelector('#landingImage, #imgBlkFront, #main-image, #ebooksImgBlkFront');
+  if (im) {
+    const dyn = im.getAttribute('data-a-dynamic-image');
+    if (dyn) {
+      try {
+        image = Object.entries(JSON.parse(dyn))
+          .sort((a, b) => (b[1][0] || 0) - (a[1][0] || 0))[0]?.[0] || '';
+      } catch {}
+    }
+    if (!image) image = im.getAttribute('src') || '';
+  }
+  return { title, price, was, image };
+}
+
+async function scrape(url) {
+  const doc = await fetchDoc(url);
+
+  let title = tidy(meta(doc, 'meta[property="og:title"]')) ||
+              tidy(doc.querySelector('h1')?.textContent) ||
+              tidy(doc.title);
+
+  const dek = tidy(meta(doc, 'meta[property="og:description"]') ||
+                   meta(doc, 'meta[name="description"]'));
+
+  let image = cleanImg(abs(meta(doc, 'meta[property="og:image"]'), url));
+  if (!image) {
+    const h1 = doc.querySelector('h1');
+    const imgs = [...doc.querySelectorAll('img')];
+    image = readImg(h1
+      ? imgs.find(im => h1.compareDocumentPosition(im) & Node.DOCUMENT_POSITION_FOLLOWING)
+      : imgs[0], url);
+  }
+
+  const body = [...doc.querySelectorAll('p')]
+    .map(el => tidy(el.textContent))
+    .find(t => t && t.length >= 60 && !/^(by |published|updated)/i.test(t)) || dek;
+
+  let price = '', was = '';
+  if (/(^|\.)amazon\./i.test(new URL(url).hostname)) {
+    const a = scrapeAmazon(doc);
+    title = a.title || title;
+    image = a.image || image;
+    price = a.price;
+    was   = a.was;
+  }
+
+  const imageAlt = tidy(meta(doc, 'meta[property="og:image:alt"]')) || title;
+  return { title, dek, image, imageAlt, body, price, was };
+}
+
+async function autofill(btn) {
+  const path = btn.dataset.path;
+  const r = resolvePath(path);
+  if (!r || !r.obj) return;
+  const url = String(r.obj[r.key] || '').trim();
+  if (!/^https?:\/\//i.test(url)) { toast('Enter a full URL first (https://...)', true); return; }
+
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>';
+
+  try {
+    const d = await scrape(url);
+    const o = r.obj;
+
+    if (r.block.type === 'featured') {
+      o.headline   = o.headline   || d.title;
+      o.dek        = o.dek        || d.dek;
+      o.body       = o.body       || d.body;
+      o.imageUrl   = o.imageUrl   || d.image;
+      o.imageAlt   = o.imageAlt   || d.imageAlt;
+    } else if (r.block.type === 'hits') {
+      o.title    = o.title    || d.title;
+      o.subtitle = o.subtitle || d.dek;
+      o.imageUrl = o.imageUrl || d.image;
+      o.imageAlt = o.imageAlt || d.imageAlt;
+    } else if (r.block.type === 'icymi') {
+      o.title = o.title || d.title;
+    } else if (r.block.type === 'deals') {
+      o.title    = o.title    || d.title;
+      o.imageUrl = o.imageUrl || d.image;
+      o.imageAlt = o.imageAlt || d.imageAlt;
+      o.price    = o.price    || d.price;
+      o.was      = o.was      || d.was;
+    }
+    if (!d.title) toast('Fetched the page but found no title - fill the fields manually', true);
+    else toast('Filled from ' + new URL(url).hostname);
+  } catch (err) {
+    console.error('[autofill]', url, err);
+    toast('Could not fetch that page (' + err.message + ') - enter the details manually', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+    renderAll();
+  }
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+function toast(msg, isErr = false) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('err', isErr);
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function download(name, text, mime) {
+  const blob = new Blob([text], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+const stamp = () => new Date().toISOString().slice(0, 10);
+
+$('#btnCopy').addEventListener('click', async () => {
+  const html = buildHTML();
+  if (!html) { toast('Nothing to copy yet', true); return; }
+  try {
+    await navigator.clipboard.writeText(html);
+    toast('HTML copied - paste into the CMS source view');
+  } catch {
+    const ta = $('#out');
+    switchPane('code');
+    ta.removeAttribute('readonly');
+    ta.select();
+    document.execCommand('copy');
+    ta.setAttribute('readonly', '');
+    toast('HTML copied');
+  }
+});
+
+$('#btnDownload').addEventListener('click', () => {
+  const html = buildHTML();
+  if (!html) { toast('Nothing to download yet', true); return; }
+  download(`newsletter-${stamp()}.html`, html, 'text/html');
+  toast('Downloaded');
+});
+
+$('#btnExport').addEventListener('click', () => {
+  download(`newsletter-${stamp()}.json`, JSON.stringify(state, null, 2), 'application/json');
+  toast('Project saved');
+});
+
+$('#btnImport').addEventListener('click', () => $('#fileImport').click());
+$('#fileImport').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || !Array.isArray(parsed.blocks)) throw new Error('not a builder file');
+      state = normalise(parsed);
+      syncSettingsInputs();
+      renderAll();
+      toast(`Loaded ${state.blocks.length} blocks from ${file.name}`);
+    } catch {
+      toast('That file is not a saved newsletter project', true);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+$('#btnClear').addEventListener('click', () => {
+  if (!state.blocks.length || !confirm('Clear every block? This cannot be undone.')) return;
+  state.blocks = [];
+  renderAll();
+});
+
+$('#btnSample').addEventListener('click', () => {
+  if (state.blocks.length && !confirm('Replace the current newsletter with the sample template?')) return;
+  state = normalise(SAMPLE);
+  syncSettingsInputs();
+  renderAll();
+  toast('Sample template loaded');
+});
+
+/* ---------- settings ---------- */
+function syncSettingsInputs() {
+  $('#setAccent').value = state.settings.accent;
+  $('#setWidth').value  = state.settings.width;
+  $('#setTag').value    = state.settings.tag;
+  document.documentElement.style.setProperty('--accent', state.settings.accent);
+}
+$('#setAccent').addEventListener('input', e => {
+  state.settings.accent = e.target.value;
+  document.documentElement.style.setProperty('--accent', e.target.value);
+  renderOutput(); save();
+});
+$('#setWidth').addEventListener('input', e => {
+  state.settings.width = parseInt(e.target.value, 10) || 560;
+  renderOutput(); save();
+});
+$('#setTag').addEventListener('input', e => {
+  state.settings.tag = e.target.value.trim();
+  renderOutput(); save();
+});
+
+/* ---------- tabs ---------- */
+function switchPane(name) {
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.pane === name));
+  $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => switchPane(t.dataset.pane)));
+
+/* ---------- add bar ---------- */
+$('#addbar').innerHTML = Object.entries(TYPES)
+  .map(([k, v]) => `<button class="btn" data-add="${k}" style="--c:${v.color}">${v.add}</button>`).join('');
+$('#addbar').addEventListener('click', e => {
+  const btn = e.target.closest('[data-add]');
+  if (btn) addBlock(btn.dataset.add);
+});
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); $('#btnExport').click(); }
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); $('#btnCopy').click(); }
+});
+
+/* ============================================================
+   SAMPLE (the approved mock-up, as data)
+   ============================================================ */
+const SAMPLE = {
+  settings: { accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
+  blocks: [
+    { type: 'featured', collapsed: false,
+      headline: 'Samsung ends support for two Galaxy watches',
+      articleUrl: 'https://www.androidpolice.com/samsung-ends-support-for-two-galaxy-watches/',
+      dek: "Galaxy Watch 4 and Galaxy Watch 4 Classic won't get updates",
+      body: 'Samsung made a promise and kept it, but unfortunately for those with the Galaxy Watch 4 and Galaxy Watch 4 Classic, it means the end of support for their smartwatches.',
+      imageUrl: 'https://static0.anpoimages.com/wordpress/wp-content/uploads/2025/04/galaxy-watch-4-google-assistant-jpg.jpg',
+      imageAlt: 'A Samsung Galaxy Watch 4 showing Google Assistant on the watchface',
+      cta: 'Read More' },
+
+    { type: 'heading', collapsed: true, text: "Today's Hits" },
+
+    { type: 'hits', collapsed: true, items: [
+      { url: 'https://www.androidpolice.com/set-up-obsidian-vault-to-organize-itself-havent-touched-folder-structure-in-weeks/',
+        title: "Here's why I set up my Obsidian vault to organize itself; I haven't touched my folder structure in weeks",
+        subtitle: 'How I keep my Obsidian vault clean and organized',
+        imageUrl: 'https://static0.anpoimages.com/wordpress/wp-content/uploads/2026/09/obsidian-shown-on-desktop-and-mobile-with-note-organization-plugin-icons.png',
+        imageAlt: 'Obsidian shown on desktop and mobile' },
+      { url: 'https://www.androidpolice.com/android-private-space-vs-samsung-secure-folder/',
+        title: "I tried Android Private Space and Samsung Secure Folder: Here's what I found",
+        subtitle: "Can Google's solution keep up with Secure Folder on Galaxy devices?",
+        imageUrl: 'https://static0.anpoimages.com/wordpress/wp-content/uploads/2024/10/android-private-space-vs-samsung-secure-folder.jpg',
+        imageAlt: 'Android Private Space vs Samsung Secure Folder' }
+    ] },
+
+    { type: 'heading', collapsed: true, text: 'CURATED DEALS' },
+
+    { type: 'deals', collapsed: true, cta: 'GET DEAL', items: [
+      { url: 'https://amazon.com/dp/B0D1JNW26R', title: 'TCL Sound Bar for Smart TV',
+        imageUrl: 'https://static0.anpoimages.com/wordpress/wp-content/uploads/2026/09/tcl-sound-bar.jpg',
+        imageAlt: 'TCL Sound Bar for Smart TV', price: '$80', was: '$130', badge: '' },
+      { url: 'https://amazon.com/dp/B0GVTPKJVT', title: 'Amazon Fire HD 10 tablet',
+        imageUrl: 'https://static0.anpoimages.com/wordpress/wp-content/uploads/2025/02/amazon-fire-hd-10-tablet-lifestyle.jpg',
+        imageAlt: 'Amazon Fire HD 10 tablet', price: '$77', was: '$155', badge: '' }
+    ] },
+
+    { type: 'heading', collapsed: true, text: 'ICYMI' },
+
+    { type: 'icymi', collapsed: true, items: [
+      { url: 'https://www.androidpolice.com/samsung-galaxy-z-fold-8-rival-took-only-seconds-to-draw-my-attention/',
+        title: 'After a month with the Galaxy Z Fold 8, a rival won me over in seconds — no, not the iPhone Fold' },
+      { url: 'https://www.androidpolice.com/google-keep-is-testing-even-more-helpful-additions/',
+        title: 'Google Keep is testing a new way to improve your notes' },
+      { url: 'https://www.androidpolice.com/week-without-google-maps-waze-android-auto/',
+        title: "I spent a week navigating without Google Maps; I discovered why we can't live without it" }
+    ] },
+
+    { type: 'disclaimer', collapsed: true,
+      text: 'Readers like you help support Android Police. When you buy through links in this newsletter, we may earn a small affiliate commission, at no extra cost to you.' }
+  ]
+};
+
+/* ============================================================
+   INIT
+   ============================================================ */
+if (!load()) state = normalise(SAMPLE);
+syncSettingsInputs();
+renderAll();
+</script>
+</body>
+</html>
