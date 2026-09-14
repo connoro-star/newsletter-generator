@@ -143,6 +143,10 @@
     <div class="scroll">
       <div class="settings">
         <div>
+          <label for="setSite">Site</label>
+          <select class="inp" id="setSite"></select>
+        </div>
+        <div>
           <label for="setAccent">Accent colour</label>
           <input type="color" class="inp" id="setAccent" value="#e01a4f">
         </div>
@@ -205,6 +209,24 @@ const num = v => {
   const n = parseFloat(String(v ?? '').replace(/[^0-9.]/g, ''));
   return isFinite(n) ? n : null;
 };
+
+/* ============================================================
+   SITE PRESETS
+   Picking a site fills in its accent colour and Amazon affiliate tag.
+   Both stay editable afterwards; editing either to something that is not
+   a preset flips the selector to Custom rather than silently disagreeing
+   with the label.
+   ============================================================ */
+const SITES = {
+  AP:  { name: 'Android Police', accent: '#e01a4f', tag: 'ap-newsletter04-20' },
+  MUO: { name: 'MakeUseOf',      accent: '#c70016', tag: 'mak0954-20' },
+  PL:  { name: 'Pocket-lint',    accent: '#204f83', tag: 'pl-newsletter-20' }
+};
+
+function matchSite(accent, tag) {
+  const a = String(accent || '').toLowerCase();
+  return Object.keys(SITES).find(k => SITES[k].accent === a && SITES[k].tag === tag) || 'custom';
+}
 
 /* ============================================================
    BLOCK DEFINITIONS
@@ -594,7 +616,7 @@ function buildHTML() {
    STATE
    ============================================================ */
 const STORAGE_KEY = 'nl-builder-v1';
-let state = { settings: { accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 }, blocks: [] };
+let state = { settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 }, blocks: [] };
 
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
@@ -617,8 +639,12 @@ function normalise(obj) {
      width every block shares; 560 is the same layout measured from the outside. */
   let width = parseInt(s.width, 10) || 560;
   if (!s.v && width === 530) width = 560;
+  const accent = s.accent || '#e01a4f';
+  const tag = s.tag ?? 'ap-newsletter04-20';
   const out = {
-    settings: { accent: s.accent || '#e01a4f', width, tag: s.tag ?? 'ap-newsletter04-20', v: 2 },
+    /* Projects saved before sites existed get theirs inferred from the colour
+       and tag they already carry, so an old AP issue still opens as AP. */
+    settings: { site: s.site || matchSite(accent, tag), accent, width, tag, v: 2 },
     blocks: []
   };
   for (const b of (obj.blocks || [])) {
@@ -1145,14 +1171,39 @@ $('#btnSample').addEventListener('click', () => {
 
 /* ---------- settings ---------- */
 function syncSettingsInputs() {
+  $('#setSite').value   = state.settings.site || 'custom';
   $('#setAccent').value = state.settings.accent;
   $('#setWidth').value  = state.settings.width;
   $('#setTag').value    = state.settings.tag;
   document.documentElement.style.setProperty('--accent', state.settings.accent);
 }
+
+$('#setSite').innerHTML =
+  Object.entries(SITES).map(([k, v]) => `<option value="${k}">${k} - ${v.name}</option>`).join('') +
+  '<option value="custom">Custom</option>';
+
+$('#setSite').addEventListener('change', e => {
+  const preset = SITES[e.target.value];
+  state.settings.site = e.target.value;
+  if (preset) {
+    state.settings.accent = preset.accent;
+    state.settings.tag = preset.tag;
+    $('#setAccent').value = preset.accent;
+    $('#setTag').value = preset.tag;
+    document.documentElement.style.setProperty('--accent', preset.accent);
+  }
+  renderOutput(); save();
+});
+
+/* Keep the selector honest when the colour or tag is edited by hand. */
+function reconcileSite() {
+  state.settings.site = matchSite(state.settings.accent, state.settings.tag);
+  $('#setSite').value = state.settings.site;
+}
 $('#setAccent').addEventListener('input', e => {
   state.settings.accent = e.target.value;
   document.documentElement.style.setProperty('--accent', e.target.value);
+  reconcileSite();
   renderOutput(); save();
 });
 $('#setWidth').addEventListener('input', e => {
@@ -1161,6 +1212,7 @@ $('#setWidth').addEventListener('input', e => {
 });
 $('#setTag').addEventListener('input', e => {
   state.settings.tag = e.target.value.trim();
+  reconcileSite();
   renderOutput(); save();
 });
 
@@ -1189,7 +1241,7 @@ document.addEventListener('keydown', e => {
    SAMPLE (the approved mock-up, as data)
    ============================================================ */
 const SAMPLE = {
-  settings: { accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
+  settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
   blocks: [
     { type: 'featured', collapsed: false,
       headline: 'Samsung ends support for two Galaxy watches',

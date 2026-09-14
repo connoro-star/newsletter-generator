@@ -121,6 +121,28 @@ Byline fields (author name, date, author page, author photo) were removed. If yo
 need a byline back, it lived in `gFeatured` - see git history or add a Custom HTML
 block.
 
+## Sites
+
+The **Site** selector fills in that site's accent colour and Amazon affiliate tag:
+
+| Site | Accent | Affiliate tag |
+|---|---|---|
+| AP - Android Police | `#e01a4f` | `ap-newsletter04-20` |
+| MUO - MakeUseOf | `#c70016` | `mak0954-20` |
+| PL - Pocket-lint | `#204f83` | `pl-newsletter-20` |
+
+The accent recolours the byline link, the Read More pill and the GET DEAL
+buttons together. Both fields stay editable after picking a site; editing either
+to something that is not a preset flips the selector to **Custom**, and typing a
+preset's values back re-detects it. Projects saved before sites existed get
+theirs inferred from the colour and tag they already carry.
+
+Add a site by adding one entry to the `SITES` map in `index.html`.
+
+> The affiliate disclaimer block is **not** part of the preset - its default text
+> names Android Police. Switching site does not rewrite it, so edit that block
+> when building for MUO or PL.
+
 ## Deals
 
 - Enter sale price and list price; the `SAVE x%` badge is calculated for you.
