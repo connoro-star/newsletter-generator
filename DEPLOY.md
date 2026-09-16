@@ -44,9 +44,40 @@ GitHub Pages ignores `_headers`; it serves its own fixed header set.
 Connect the repo, same build settings. Free tier gives a public URL; site-wide
 password protection is a paid plan. `_headers` is honoured.
 
+## If the live URL serves an old version
+
+`git push` only redeploys a Pages project that was created through **Connect to
+Git**. A project created by **direct upload** (drag-and-drop) has no link to the
+repo, so pushes never trigger a build and the URL keeps serving whatever file was
+uploaded that one time - indefinitely, with no error anywhere.
+
+That is the state `newsletter-generator.pages.dev` was found in on 2026-09-16: it
+served a 12 KB `Newsletter Generator` v1.7 file with none of this repo's markup
+(no `addbar`, no `data-add`, no `SITES`), while `origin/main` held the correct
+56 KB `Newsletter HTML Builder`. Nothing was wrong with the code or the CSP.
+
+Check it in one command before debugging anything in the app:
+
+```bash
+curl -s https://newsletter-generator.pages.dev/ | grep -o '<title>[^<]*</title>'
+# expected: <title>Newsletter HTML Builder</title>
+```
+
+To fix: Workers & Pages -> the project -> **Settings -> Builds & deployments**.
+If there is no Git repository connected, delete the project and recreate it with
+**Connect to Git** (step 1 above). Build command empty, output directory `/`.
+
+## Access is not enforced on the bare `.pages.dev` host
+
+Verified 2026-09-16: an unauthenticated `curl` returns `HTTP 200`. Anyone with
+the URL can read the page source, which includes the affiliate tags in the
+`SITES` map. That is the accepted trade-off for this deployment; if it needs to
+change, attach a custom subdomain and put an Access policy on that.
+
 ## After deploying
 
-`git push` redeploys automatically on Cloudflare and Netlify.
+`git push` redeploys automatically **only on a Git-connected** Cloudflare or
+Netlify project - see the troubleshooting section above.
 
 Drafts autosave per browser, so each person has their own in-progress issue.
 To hand an issue to someone else use **Save JSON** -> they **Import JSON**.
