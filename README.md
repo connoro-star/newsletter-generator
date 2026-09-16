@@ -171,7 +171,15 @@ use Save JSON for anything you need to keep or hand to someone else.
 
 ## Starting an issue
 
-A new session opens on the house layout with every field blank:
+**New issue** loads the house layout, empty. Use it to start each week.
+
+It exists because the autosaved draft always wins at boot - that is what keeps
+an issue in progress across a refresh, but it also means a change to the house
+layout never reaches anyone who has opened the tool before, because their saved
+blocks are restored instead. **New issue** is how you get the current layout
+without clearing site data.
+
+The layout, which is also what a brand-new session opens on:
 
 1. Featured Article
 2. Section Heading - `Today's Hits`

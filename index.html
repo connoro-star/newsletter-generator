@@ -149,6 +149,7 @@
   <div class="brandmark"><span class="dot"></span><h1>Newsletter HTML Builder</h1></div>
   <span class="badge" id="blockCount">0 blocks</span>
   <span class="spacer"></span>
+  <button class="btn sm" id="btnNew">New issue</button>
   <button class="btn sm" id="btnImport">Import JSON</button>
   <button class="btn sm" id="btnExport">Save JSON</button>
   <button class="btn sm" id="btnSample">Load sample</button>
@@ -1209,6 +1210,20 @@ $('#btnClear').addEventListener('click', () => {
   });
   renderAll();
   toast('Fields cleared');
+});
+
+/* The autosaved draft always wins over DEFAULT_LAYOUT at boot - that is what
+   keeps an issue in progress across a refresh. The side effect is that a change
+   to the house layout never reaches anyone who has opened the tool before, since
+   their saved blocks are restored instead. This button is how an editor gets the
+   current layout back without clearing site data. */
+$('#btnNew').addEventListener('click', () => {
+  if (state.blocks.length &&
+      !confirm('Start a new issue?\n\nThis replaces what is on screen with the standard layout, empty.\n\nIt cannot be undone and it overwrites the autosave, so use Save JSON first if you need the current issue.')) return;
+  state = normalise(DEFAULT_LAYOUT);
+  syncSettingsInputs();
+  renderAll();
+  toast('New issue started');
 });
 
 $('#btnSample').addEventListener('click', () => {
