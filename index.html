@@ -530,14 +530,17 @@ ${dealCell(items[n + 1], cfg, 'right', W2)}
   return rows.join('\n\n');
 }
 
-/* Built from table rows rather than <ul>: every email client applies its own
+/* Built from table rows rather than <ol>: every email client applies its own
    default list indent (Outlook's is large and not overridable), which is what
-   pushed this block out of line with the others. A 16px bullet cell puts the
-   marker flush with the column and keeps the hanging indent on wrapped lines. */
+   pushed this block out of line with the others. Numbering the rows by hand in
+   a 24px marker cell puts the number flush with the column, keeps the hanging
+   indent on wrapped lines, and leaves the marker free to take the brand
+   accent - an <ol> marker inherits the <li> colour in most clients and cannot
+   be styled separately from the link text. 24px fits a two-digit number. */
 function gIcymi(b, s) {
-  const rows = b.items.filter(i => i.title || i.url).map(i =>
+  const rows = b.items.filter(i => i.title || i.url).map((i, n) =>
 `\t\t\t\t\t<tr>
-\t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:#333333;" valign="top" width="16">&bull;</td>
+\t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:${s.accent};font-weight:700;" valign="top" width="24">${n + 1}.</td>
 \t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;" valign="top"><a href="${escUrl(i.url)}">${esc(i.title)}</a></td>
 \t\t\t\t\t</tr>`).join('\n');
   if (!rows) return '';
