@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- GitHub Pages serves a fixed header set and ignores _headers, so the policy
+     is carried in the document instead. Kept in step with _headers, which still
+     applies if this is ever served from Cloudflare or Netlify again.
+     Two directives cannot be expressed here and are lost on GitHub Pages:
+     frame-ancestors (meta form is ignored by spec) and Permissions-Policy. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src https: data: blob:; connect-src https://r.jina.ai https://api.allorigins.win; frame-src 'self' data: blob:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Newsletter HTML Builder</title>
 <style>

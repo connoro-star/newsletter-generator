@@ -7,29 +7,11 @@ Auto-fill keeps working when hosted. `r.jina.ai` echoes the `Origin` header, so
 a hosted HTTPS page is allowed exactly as a local `file://` page is - verified
 against both `*.pages.dev` and `*.github.io` origins.
 
-## Cloudflare Pages + Access (recommended)
+## GitHub Pages (current host)
 
-Repo stays private, the URL is restricted to people you name, free.
-
-1. dash.cloudflare.com -> Workers & Pages -> Create -> Pages -> **Connect to Git**
-2. Authorise GitHub for **this repository only**, pick `newsletter-generator`
-3. Build settings - framework preset **None**, build command **empty**, output
-   directory **`/`**
-4. Save and Deploy -> `newsletter-generator.pages.dev`
-5. Restrict it: Zero Trust -> Access -> Applications -> **Add a self-hosted
-   application**, pointed at that hostname, with an Allow policy for
-   *emails ending in* your company domain
-
-Free for up to 50 users. Note: Access policies attach most reliably to a custom
-domain you have in Cloudflare. If you have no domain there, protecting the bare
-`.pages.dev` host may not be offered - in that case use the GitHub Pages route
-below and scrub the tags, or add a custom subdomain first.
-
-## GitHub Pages (public)
-
-Simplest, but the site is public even if the repo is private, and on a free
-plan Pages requires a public repo. **Blank the affiliate tag defaults in the
-`SITES` map before doing this** - they are revenue-attributing identifiers.
+The repo is **public** - free GitHub Pages only serves public repos, and the
+affiliate tags in the `SITES` map are public with it. That was a deliberate
+call; see "Security trade-off" below before assuming otherwise.
 
 ```bash
 gh repo edit connoro-star/newsletter-generator --visibility public --accept-visibility-change-consequences
@@ -37,7 +19,34 @@ gh api repos/connoro-star/newsletter-generator/pages -X POST -f 'source[branch]=
 # -> https://connoro-star.github.io/newsletter-generator/
 ```
 
-GitHub Pages ignores `_headers`; it serves its own fixed header set.
+`git push` to `main` redeploys; a build takes roughly a minute. Check it with:
+
+```bash
+curl -s https://connoro-star.github.io/newsletter-generator/ | grep -o '<title>[^<]*</title>'
+# expected: <title>Newsletter HTML Builder</title>
+```
+
+`.nojekyll` stops GitHub running the site through Jekyll. Without it Jekyll
+would try to interpret Liquid tags (`{{`, `{%`) inside `index.html` and would
+hide underscore-prefixed files like `_headers` from the build.
+
+### Security trade-off versus Cloudflare
+
+GitHub Pages sends **none** of the headers in `_headers` - verified against live
+`*.github.io` origins. `_headers` is inert here and kept only for a move back to
+Cloudflare or Netlify. The policy now travels in `index.html` as a
+`<meta http-equiv="Content-Security-Policy">`, which covers everything except:
+
+| Lost on GitHub Pages | Effect |
+|---|---|
+| `frame-ancestors` / `X-Frame-Options` | the page can be framed by any site - clickjacking is not blocked |
+| `Permissions-Policy` | camera/mic/geolocation are not pre-denied (the app requests none) |
+| `X-Content-Type-Options: nosniff` | relies on GitHub serving correct content types, which it does |
+
+`Referrer-Policy` survives as `<meta name="referrer" content="no-referrer">`.
+
+If any of that matters later, move back to Cloudflare Pages via **Connect to
+Git** - `_headers` starts applying again with no code change.
 
 ## Netlify
 
@@ -46,38 +55,34 @@ password protection is a paid plan. `_headers` is honoured.
 
 ## If the live URL serves an old version
 
-`git push` only redeploys a Pages project that was created through **Connect to
-Git**. A project created by **direct upload** (drag-and-drop) has no link to the
-repo, so pushes never trigger a build and the URL keeps serving whatever file was
-uploaded that one time - indefinitely, with no error anywhere.
+Always confirm what the host is actually serving before debugging the app. On
+2026-09-16 `newsletter-generator.pages.dev` served a 12 KB `Newsletter Generator`
+v1.7 file with none of this repo's markup (no `addbar`, no `data-add`, no
+`SITES`) while `origin/main` held the correct 56 KB builder. The cause: that
+Pages project had been created by **direct upload**, so it had no link to the
+repo and pushes never triggered a build - silently, with no error anywhere.
+Nothing was wrong with the code or the CSP. Cloudflare was abandoned for
+GitHub Pages rather than reconnected.
 
-That is the state `newsletter-generator.pages.dev` was found in on 2026-09-16: it
-served a 12 KB `Newsletter Generator` v1.7 file with none of this repo's markup
-(no `addbar`, no `data-add`, no `SITES`), while `origin/main` held the correct
-56 KB `Newsletter HTML Builder`. Nothing was wrong with the code or the CSP.
-
-Check it in one command before debugging anything in the app:
+The same check applies to any host:
 
 ```bash
-curl -s https://newsletter-generator.pages.dev/ | grep -o '<title>[^<]*</title>'
+curl -s <the live url> | grep -o '<title>[^<]*</title>'
 # expected: <title>Newsletter HTML Builder</title>
 ```
 
-To fix: Workers & Pages -> the project -> **Settings -> Builds & deployments**.
-If there is no Git repository connected, delete the project and recreate it with
-**Connect to Git** (step 1 above). Build command empty, output directory `/`.
+If that prints something else, the problem is the deployment, not the app.
 
-## Access is not enforced on the bare `.pages.dev` host
+## The site is public and unauthenticated
 
-Verified 2026-09-16: an unauthenticated `curl` returns `HTTP 200`. Anyone with
-the URL can read the page source, which includes the affiliate tags in the
-`SITES` map. That is the accepted trade-off for this deployment; if it needs to
-change, attach a custom subdomain and put an Access policy on that.
+Anyone with the URL can read the page source, including the affiliate tags in
+the `SITES` map. Free GitHub Pages has no access control of any kind. If the
+site ever needs restricting, that means leaving GitHub Pages - Cloudflare Pages
+plus an Access policy on a custom subdomain is the documented route.
 
 ## After deploying
 
-`git push` redeploys automatically **only on a Git-connected** Cloudflare or
-Netlify project - see the troubleshooting section above.
+`git push` to `main` redeploys.
 
 Drafts autosave per browser, so each person has their own in-progress issue.
 To hand an issue to someone else use **Save JSON** -> they **Import JSON**.
