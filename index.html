@@ -6,6 +6,12 @@
 <title>Newsletter HTML Builder</title>
 <style>
   :root{
+    /* The page paints its own dark theme, but native controls (the site
+       <select> popup, the colour swatch, number spinners, scrollbars) are drawn
+       by the browser. Without this they render on the LIGHT system scheme while
+       their text inherits --text, so the site options came out white-on-white
+       and looked like an empty dropdown. */
+    color-scheme: dark;
     --bg:#0f1115; --panel:#171a21; --panel-2:#1e222b; --line:#2b3140;
     --text:#e7e9ee; --muted:#9aa3b2; --accent:#e01a4f; --accent-2:#3b82f6;
     --ok:#2d8e3c; --warn:#c2860a; --radius:10px;
@@ -55,6 +61,10 @@
   .block{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c,var(--line));
     border-radius:var(--radius);margin-bottom:11px;overflow:hidden}
   .block.collapsed .block-body{display:none}
+  /* Blocks load collapsed, so without a caret the header reads as a block with
+     no fields rather than one that opens. */
+  .caret{color:#7c8699;font-size:10px;flex-shrink:0;transition:transform .12s ease;transform:rotate(90deg)}
+  .block.collapsed .caret{transform:rotate(0deg)}
   .bhead{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--panel-2);cursor:grab;user-select:none}
   @supports (background:color-mix(in srgb,red,blue)){
     .bhead{background:color-mix(in srgb, var(--c,var(--panel-2)) 13%, var(--panel-2))}
@@ -764,6 +774,7 @@ function renderBlocks() {
       style="--c:${def.color}" draggable="true">
       <div class="bhead" data-act="toggle" data-b="${b.id}">
         <span class="grip">&#9776;</span>
+        <span class="caret">&#9654;</span>
         <span class="tdot"></span>
         <span class="btype">${def.label}</span>
         <span class="bsub">${escAttr(def.summary(b) || '')}</span>
