@@ -42,7 +42,8 @@ than a `<ul>` because every email client applies its own list indent and
 Outlook's cannot be overridden.
 
 Changing Block width rescales everything together: the featured card's inner
-column becomes `width - 32`, and each deal card `(width - 8) / 2`.
+column becomes `width - 14` (6px padding plus a 1px border each side), and
+each deal card `(width - 8) / 2`.
 
 ## Blocks
 

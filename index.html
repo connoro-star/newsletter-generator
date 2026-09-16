@@ -385,9 +385,11 @@ ${inner}
 </table>`;
 }
 
-/* Inner width of the featured card: block width less 15px padding and 1px
-   border on each side. */
-const innerWidth = B => B - 32;
+/* Inner width of the featured card: block width less 6px padding and 1px
+   border on each side. Derived from the padding on the link/div below - if that
+   padding changes, this must change with it or the inner tables and the hero
+   image are sized for space the tile no longer has. */
+const innerWidth = B => B - 14;
 
 function gFeatured(b, s) {
   const B = s.width, C = innerWidth(B), rgb = hexToRgb(s.accent);
@@ -442,10 +444,10 @@ function gFeatured(b, s) {
   /* Padding sits on the link, not the cell, so the click target covers the
      whole bordered tile rather than stopping at the content edge. */
   const wrapped = b.articleUrl
-    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" style="display:block;padding:15px;color:#333333;text-decoration:none;" target="_blank">
+    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" style="display:block;padding:6px;color:#333333;text-decoration:none;" target="_blank">
 ${inner}
 \t\t\t</a>`
-    : `\t\t\t<div style="padding:15px;">
+    : `\t\t\t<div style="padding:6px;">
 ${inner}
 \t\t\t</div>`;
 
