@@ -401,9 +401,10 @@ function gFeatured(b, s) {
      explicitly so the card never inherits default link blue or an underline. */
 
   if (b.headline) {
-    /* The dek reads as part of the headline, so it sits tight beneath it.
-       With no dek the headline keeps the full 16px gap to whatever follows. */
-    const headGap = b.dek ? 6 : 16;
+    /* The whole tile now sits on one 6px rhythm, so the headline keeps the same
+       gap whether or not a dek follows it. This used to open out to 16px with no
+       dek, which is why it was a conditional. */
+    const headGap = 6;
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
@@ -415,19 +416,19 @@ function gFeatured(b, s) {
 \t\t\t\t</table>`);
   }
 
-  if (b.dek) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 16px;color: #333333;">${esc(b.dek)}</p>`);
+  if (b.dek) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 6px;color: #333333;">${esc(b.dek)}</p>`);
 
   if (b.imageUrl) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 16px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" width="${C}" /></td>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" width="${C}" /></td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
   }
 
-  if (b.body) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 16px;color: #333333;">${esc(b.body)}</p>`);
+  if (b.body) out.push(`\t\t\t\t<p style="margin:0;padding-bottom: 6px;color: #333333;">${esc(b.body)}</p>`);
 
   if (b.cta) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">

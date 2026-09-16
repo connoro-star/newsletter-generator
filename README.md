@@ -79,9 +79,11 @@ paragraph:
   running straight on from a deal grid gets its own gap, while one sitting under
   a `MOST READ THIS WEEK` heading stays tight to that heading
 
-Inside the featured tile, the sub-headline sits 6px under the headline so the two
-read as a pair; a headline with no sub-headline keeps the full 16px gap to
-whatever follows.
+Inside the featured tile everything sits on one 6px rhythm: the padding, the gap
+under the headline, the dek, the hero image and the summary paragraph. The gap no
+longer opens out when a headline has no sub-headline - it used to go to 16px.
+The tile's 16px outer margin is unchanged, so the space between the tile and the
+next block is the same as before.
 
 ## Auto-fill
 
