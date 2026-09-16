@@ -323,17 +323,18 @@ const TYPES = {
     ]
   },
 
-  icymi: {
+  mostread: {
     color: '#fb7185',
-    label: 'Link List (ICYMI)',
+    label: 'Link List (Most Read This Week)',
     add: 'Link List',
+    defaultItems: 5,
     summary: b => `${b.items.length} link${b.items.length === 1 ? '' : 's'}`,
     defaults: () => ({ items: [] }),
     itemLabel: 'Link',
     itemSummary: i => i.title,
     itemDefaults: () => ({ url: '', title: '' }),
     itemFields: [
-      { k: 'url',   l: 'URL', t: 'url', fetch: 'icymi' },
+      { k: 'url',   l: 'URL', t: 'url', fetch: 'mostread' },
       { k: 'title', l: 'Link text', t: 'text' }
     ]
   },
@@ -557,7 +558,7 @@ ${dealCell(items[n + 1], cfg, 'right', W2)}
    indent on wrapped lines, and leaves the marker free to take the brand
    accent - an <ol> marker inherits the <li> colour in most clients and cannot
    be styled separately from the link text. 24px fits a two-digit number. */
-function gIcymi(b, s) {
+function gMostRead(b, s) {
   const rows = b.items.filter(i => i.title || i.url).map((i, n) =>
 `\t\t\t\t\t<tr>
 \t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:${s.accent};font-weight:700;" valign="top" width="24">${n + 1}.</td>
@@ -580,7 +581,7 @@ const gDisclaimer = (b, s) => shell(
 
 const GEN = {
   featured: gFeatured, heading: gHeading, hits: gHits, deals: gDeals,
-  icymi: gIcymi, disclaimer: gDisclaimer,
+  mostread: gMostRead, disclaimer: gDisclaimer,
   custom: b => (b.html || '').trim()
 };
 
@@ -626,7 +627,7 @@ function buildHTML() {
     /* A link list that runs straight on from another section - a deal grid,
        most often - needs its own gap. When its own heading introduces it the
        heading already provides the separation, so no extra line there. */
-    if (b.type === 'icymi' && parts.length && prev !== 'heading') parts.push(SPACER);
+    if (b.type === 'mostread' && parts.length && prev !== 'heading') parts.push(SPACER);
 
     parts.push(html);
     if (b.type === 'deals') parts.push(SPACER);
@@ -654,6 +655,11 @@ function load() {
     return true;
   } catch { return false; }
 }
+/* Blocks renamed since a save file was written. Without this, normalise drops
+   any block whose type it does not recognise, so an old draft or an exported
+   JSON would silently lose its link list. */
+const TYPE_ALIASES = { icymi: 'mostread' };
+
 /* Rebuild an imported object against the current schema so missing keys
    (from an older save file) get their defaults instead of undefined. */
 function normalise(obj) {
@@ -671,18 +677,21 @@ function normalise(obj) {
     blocks: []
   };
   for (const b of (obj.blocks || [])) {
-    const def = TYPES[b.type];
+    const type = TYPE_ALIASES[b.type] || b.type;
+    const def = TYPES[type];
     if (!def) continue;
-    const block = { id: b.id || uid(), type: b.type, collapsed: !!b.collapsed, ...def.defaults() };
+    const block = { id: b.id || uid(), type, collapsed: !!b.collapsed, ...def.defaults() };
     for (const f of (def.fields || [])) if (b[f.k] !== undefined) block[f.k] = b[f.k];
     if (def.itemFields) {
-      block.items = (Array.isArray(b.items) ? b.items : []).map(it => {
-        const item = def.itemDefaults();
-        for (const f of def.itemFields) if (it[f.k] !== undefined) item[f.k] = it[f.k];
-        return item;
-      });
+      block.items = Array.isArray(b.items)
+        ? b.items.map(it => {
+            const item = def.itemDefaults();
+            for (const f of def.itemFields) if (it[f.k] !== undefined) item[f.k] = it[f.k];
+            return item;
+          })
+        : Array.from({ length: def.defaultItems || 1 }, () => def.itemDefaults());
     }
-    if (b.type === 'custom' && b.html !== undefined) block.html = b.html;
+    if (type === 'custom' && b.html !== undefined) block.html = b.html;
     out.blocks.push(block);
   }
   return out;
@@ -1083,7 +1092,7 @@ async function autofill(btn) {
       o.subtitle = o.subtitle || d.dek;
       o.imageUrl = o.imageUrl || d.image;
       o.imageAlt = o.imageAlt || d.imageAlt;
-    } else if (r.block.type === 'icymi') {
+    } else if (r.block.type === 'mostread') {
       o.title = o.title || d.title;
     } else if (r.block.type === 'deals') {
       o.title    = o.title    || d.title;
@@ -1179,10 +1188,27 @@ $('#fileImport').addEventListener('change', e => {
   reader.readAsText(file);
 });
 
+/* Clear empties what an editor typed, not the layout they built. Every block
+   keeps its type, its position and the number of rows it had; each field goes
+   back to its type default, so boilerplate like the CTA labels and the
+   disclaimer survives. A heading keeps its text too - that is the section's
+   name, not per-issue content, and blanking it would leave a column of
+   indistinguishable empty rows. Use the block's own x button to remove it. */
 $('#btnClear').addEventListener('click', () => {
-  if (!state.blocks.length || !confirm('Clear every block? This cannot be undone.')) return;
-  state.blocks = [];
+  if (!state.blocks.length ||
+      !confirm('Empty every field?\n\nThe blocks and their order stay - only the content you typed is cleared.')) return;
+  state.blocks = state.blocks.map(b => {
+    const def = TYPES[b.type];
+    const fresh = { id: b.id, type: b.type, collapsed: b.collapsed, ...def.defaults() };
+    if (def.itemFields) {
+      const rows = b.items && b.items.length ? b.items.length : (def.defaultItems || 1);
+      fresh.items = Array.from({ length: rows }, () => def.itemDefaults());
+    }
+    if (b.type === 'heading') fresh.text = b.text;
+    return fresh;
+  });
   renderAll();
+  toast('Fields cleared');
 });
 
 $('#btnSample').addEventListener('click', () => {
@@ -1291,6 +1317,17 @@ const SAMPLE = {
         imageAlt: 'Android Private Space vs Samsung Secure Folder' }
     ] },
 
+    { type: 'heading', collapsed: true, text: 'MOST READ THIS WEEK' },
+
+    { type: 'mostread', collapsed: true, items: [
+      { url: 'https://www.androidpolice.com/samsung-galaxy-z-fold-8-rival-took-only-seconds-to-draw-my-attention/',
+        title: 'After a month with the Galaxy Z Fold 8, a rival won me over in seconds — no, not the iPhone Fold' },
+      { url: 'https://www.androidpolice.com/google-keep-is-testing-even-more-helpful-additions/',
+        title: 'Google Keep is testing a new way to improve your notes' },
+      { url: 'https://www.androidpolice.com/week-without-google-maps-waze-android-auto/',
+        title: "I spent a week navigating without Google Maps; I discovered why we can't live without it" }
+    ] },
+
     { type: 'heading', collapsed: true, text: 'CURATED DEALS' },
 
     { type: 'deals', collapsed: true, cta: 'GET DEAL', items: [
@@ -1302,26 +1339,41 @@ const SAMPLE = {
         imageAlt: 'Amazon Fire HD 10 tablet', price: '$77', was: '$155', badge: '' }
     ] },
 
-    { type: 'heading', collapsed: true, text: 'ICYMI' },
-
-    { type: 'icymi', collapsed: true, items: [
-      { url: 'https://www.androidpolice.com/samsung-galaxy-z-fold-8-rival-took-only-seconds-to-draw-my-attention/',
-        title: 'After a month with the Galaxy Z Fold 8, a rival won me over in seconds — no, not the iPhone Fold' },
-      { url: 'https://www.androidpolice.com/google-keep-is-testing-even-more-helpful-additions/',
-        title: 'Google Keep is testing a new way to improve your notes' },
-      { url: 'https://www.androidpolice.com/week-without-google-maps-waze-android-auto/',
-        title: "I spent a week navigating without Google Maps; I discovered why we can't live without it" }
-    ] },
-
     { type: 'disclaimer', collapsed: true,
       text: 'Readers like you help support Android Police. When you buy through links in this newsletter, we may earn a small affiliate commission, at no extra cost to you.' }
   ]
 };
 
 /* ============================================================
+   DEFAULT LAYOUT
+
+   The house structure with every per-issue field blank - what a new session
+   opens on, and what Clear empties back to. Section headings keep their text
+   because that is what identifies each section in the editor; wiping them
+   would leave a column of indistinguishable empty rows.
+
+   Blocks omit `items` on purpose: normalise reads an absent items key as
+   "give me defaultItems blank rows", so the article list and link list each
+   open with five, and changing defaultItems changes this layout with it.
+   ============================================================ */
+const DEFAULT_LAYOUT = {
+  settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
+  blocks: [
+    { type: 'featured',   collapsed: false },
+    { type: 'heading',    collapsed: false, text: 'Today\u2019s Hits' },
+    { type: 'hits',       collapsed: false },
+    { type: 'heading',    collapsed: false, text: 'MOST READ THIS WEEK' },
+    { type: 'mostread',   collapsed: false },
+    { type: 'heading',    collapsed: false, text: 'CURATED DEALS' },
+    { type: 'deals',      collapsed: false },
+    { type: 'disclaimer', collapsed: false }
+  ]
+};
+
+/* ============================================================
    INIT
    ============================================================ */
-if (!load()) state = normalise(SAMPLE);
+if (!load()) state = normalise(DEFAULT_LAYOUT);
 syncSettingsInputs();
 renderAll();
 </script>

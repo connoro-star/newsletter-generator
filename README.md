@@ -41,10 +41,10 @@ column becomes `width - 32`, and each deal card `(width - 8) / 2`.
 | Block | Output |
 |---|---|
 | Featured Article | Bordered hero card, entirely clickable: headline, dek, image, summary, Read More pill |
-| Section Heading | `Today's Hits` / `CURATED DEALS` / `ICYMI` style H2 |
+| Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
 | Article List | 200px thumbnail + title + subtitle rows; starts with 5 empty tiles |
 | Deal Grid | Product cards, 2 per row, auto `SAVE x%` badge |
-| Link List | Plain `<ul>` of linked headlines |
+| Link List | Numbered rows of linked headlines, marker in the brand accent |
 | Disclaimer | Italic affiliate footnote |
 | Custom HTML | Raw markup, passed through untouched |
 
@@ -68,7 +68,7 @@ paragraph:
 - after every deal grid
 - above a link list that is **not** introduced by its own heading - a link list
   running straight on from a deal grid gets its own gap, while one sitting under
-  an `ICYMI` heading stays tight to that heading
+  a `MOST READ THIS WEEK` heading stays tight to that heading
 
 Inside the featured tile, the sub-headline sits 6px under the headline so the two
 read as a pair; a headline with no sub-headline keeps the full 16px gap to
@@ -161,9 +161,30 @@ Work is also autosaved to this browser's local storage, so a refresh will not
 lose the issue in progress. Local storage is per-browser and per-machine:
 use Save JSON for anything you need to keep or hand to someone else.
 
+## Starting an issue
+
+A new session opens on the house layout with every field blank:
+
+1. Featured Article
+2. Section Heading - `Today's Hits`
+3. Article List - 5 empty rows
+4. Section Heading - `MOST READ THIS WEEK`
+5. Link List - 5 empty rows
+6. Section Heading - `CURATED DEALS`
+7. Deal Grid
+8. Affiliate Disclaimer
+
+**Clear** empties the fields, not the layout. Every block keeps its type, its
+position and its row count; section headings keep their text, and boilerplate
+that comes from a block's defaults - the CTA labels, the disclaimer wording -
+comes back. To remove a block, use the x on the block itself.
+
+**Load sample** replaces the issue with a filled-in example, for checking how
+the output looks.
+
 ## Editing the template
 
-All markup lives in the `gFeatured` / `gHits` / `gDeals` / `gIcymi` functions in
+All markup lives in the `gFeatured` / `gHits` / `gDeals` / `gMostRead` functions in
 `index.html`. They emit the approved markup verbatim, so a style change there
 changes every newsletter. The featured and deal-card output is diff-verified
 byte-for-byte against the approved mock-up.
