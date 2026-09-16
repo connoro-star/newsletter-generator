@@ -1196,7 +1196,7 @@ $('#fileImport').addEventListener('change', e => {
    indistinguishable empty rows. Use the block's own x button to remove it. */
 $('#btnClear').addEventListener('click', () => {
   if (!state.blocks.length ||
-      !confirm('Empty every field?\n\nThe blocks and their order stay - only the content you typed is cleared.')) return;
+      !confirm('Empty every field?\n\nThe blocks and their order stay - only the content you typed is cleared.\n\nThis cannot be undone and it overwrites the autosave, so use Save JSON first if you need this issue.')) return;
   state.blocks = state.blocks.map(b => {
     const def = TYPES[b.type];
     const fresh = { id: b.id, type: b.type, collapsed: b.collapsed, ...def.defaults() };

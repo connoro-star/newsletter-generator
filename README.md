@@ -5,7 +5,15 @@ into the CMS. No build step, no server, no dependencies.
 
 ## Use it
 
-Open `index.html` in a browser (double-click, or drag into a tab).
+**https://connoro-star.github.io/newsletter-generator/**
+
+Or open `index.html` in a browser (double-click, or drag into a tab) - it is a
+single file and behaves the same either way.
+
+> The hosted copy is **public and unauthenticated**: free GitHub Pages offers no
+> access control, so anyone with the link can use it. It is an internal tool
+> published on a public host, not a product. Do not put anything confidential
+> into a draft. See [SECURITY.md](SECURITY.md).
 
 The preview renders at a 600px email width with 20px padding, leaving a 560px
 content column - so what you see matches a real inbox.
@@ -182,7 +190,25 @@ comes back. To remove a block, use the x on the block itself.
 **Load sample** replaces the issue with a filled-in example, for checking how
 the output looks.
 
+> **Clear changed meaning.** It used to delete every block. It now empties the
+> fields and leaves the layout alone. If you relied on it to start from nothing,
+> remove the blocks you do not want with their own x.
+
+Clear cannot be undone and it overwrites the autosave, so use **Save JSON**
+first for anything you need to keep. The autosave keeps one state per browser -
+there is no version history.
+
 ## Editing the template
+
+### Renaming a block type
+
+`normalise` drops any block whose `type` it does not recognise, silently - so
+renaming a type key destroys every saved draft and every previously exported
+JSON that used the old name. `TYPE_ALIASES` maps old keys to current ones and
+must be extended whenever a type is renamed. `icymi -> mostread` is there as the
+worked example.
+
+### Where the markup lives
 
 All markup lives in the `gFeatured` / `gHits` / `gDeals` / `gMostRead` functions in
 `index.html`. They emit the approved markup verbatim, so a style change there
