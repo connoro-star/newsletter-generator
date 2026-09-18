@@ -85,6 +85,41 @@ longer opens out when a headline has no sub-headline - it used to go to 16px.
 The tile's 16px outer margin is unchanged, so the space between the tile and the
 next block is the same as before.
 
+## Mobile and dark mode
+
+The output now starts with a small `<style>` block. Everything in it is an
+override on a design that already works without it - the inline styles are still
+the source of truth - because it covers the two things inline CSS cannot express:
+
+**Thumbnails shrink on a phone.** At 560px the article-list thumbnail is 200px.
+On a 390px handset that left about 130px for the headline, which is what was
+compressing the text. The thumbnail now steps to 112px under 600px wide, and
+88px under 360px, and the text cell takes the space back:
+
+| Viewport | Thumbnail | Text column |
+|---|---|---|
+| 640px (desktop) | 200px | 322px |
+| 390px (iPhone) | 112px | 216px |
+| 360px (narrow) | 88px | 210px |
+
+**Dark mode follows the reader.** `prefers-color-scheme: dark` repaints the card
+surfaces, borders and text through the `nl-card` / `nl-strong` / `nl-body` /
+`nl-muted` classes. Use the **Dark** and **Mobile** toggles above the preview to
+check both without a dark-mode mail client.
+
+Three caveats worth knowing:
+
+- **Outlook desktop ignores `<style>` entirely.** It gets the inline design:
+  full-size thumbnails, light mode. That is the intended fallback, not a bug.
+- **Gmail ignores `prefers-color-scheme`** and applies its own inversion. These
+  colours are chosen to survive that rather than fight it.
+- **Some CMSes strip `<style>` on paste.** If dark mode and the mobile
+  thumbnails stop working after pasting, that is what happened - check the
+  source view for the block, and paste it into the template head instead.
+
+Product shots with white backgrounds still read as white blocks in dark mode.
+That is the source image, not the CSS.
+
 ## Auto-fill
 
 Paste a URL, click **Auto-fill**: the page is fetched through `r.jina.ai` and its
