@@ -91,16 +91,19 @@ The output now starts with a small `<style>` block. Everything in it is an
 override on a design that already works without it - the inline styles are still
 the source of truth - because it covers the two things inline CSS cannot express:
 
-**Thumbnails shrink on a phone.** At 560px the article-list thumbnail is 200px.
-On a 390px handset that left about 130px for the headline, which is what was
-compressing the text. The thumbnail now steps to 112px under 600px wide, and
-88px under 360px, and the text cell takes the space back:
+**Thumbnails shrink on a phone.** At 560px the article-list thumbnail is a fixed
+200px, which on a handset left the headline almost no room. Under 600px the
+thumbnail cell becomes `33%` rather than a fixed pixel step, so the image holds
+about a third of the tile at any width instead of only at the one size a step
+was tuned for:
 
-| Viewport | Thumbnail | Text column |
-|---|---|---|
-| 640px (desktop) | 200px | 322px |
-| 390px (iPhone) | 112px | 216px |
-| 360px (narrow) | 88px | 210px |
+| Viewport | Image | Text | Image share |
+|---|---|---|---|
+| 640px desktop | 200px | 322px | 38% |
+| 430px Pro Max | 113px | 255px | 31% |
+| 390px iPhone 14 | 100px | 228px | 30% |
+| 375px 13 mini | 95px | 218px | 30% |
+| 320px SE | 77px | 181px | 30% |
 
 **Dark mode follows the reader.** `prefers-color-scheme: dark` repaints the card
 surfaces, borders and text through the `nl-card` / `nl-strong` / `nl-body` /
