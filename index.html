@@ -406,14 +406,8 @@ ${inner}
 </table>`;
 }
 
-/* The featured card's inner elements are sized in percentages, so this is now
-   only the absolute fallback the hero image hands to Outlook's Word engine,
-   which ignores percentage widths on an image. Block width less the 6px padding
-   and 1px border on each side; if that padding changes, this changes with it. */
-const innerWidth = B => B - 14;
-
 function gFeatured(b, s) {
-  const B = s.width, C = innerWidth(B), rgb = hexToRgb(s.accent);
+  const B = s.width, rgb = hexToRgb(s.accent);
   const out = [];
 
   /* The whole tile is one link, so nothing inside may be an anchor of its own -
@@ -443,7 +437,7 @@ function gFeatured(b, s) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" width="${C}" /></td>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
@@ -487,15 +481,11 @@ function gHeading(b, s) {
 function gHits(b, s) {
   const B = s.width, P = TYPES.hits.thumbPct;
   /* The cell is a percentage so the image keeps its share of the tile at any
-     width, phone included, with no breakpoint to drift out of tune. Outlook's
-     Word engine ignores percentage widths on an image, so the img also carries
-     an absolute width attribute worked out from the current block width - the
-     same declare-it-twice rule the rest of the template follows. */
-  const O = Math.round(B * P / 100) - 12;
+     width, phone included, with no breakpoint to drift out of tune. */
   return b.items.filter(i => i.title || i.url).map(i => {
     const u = escUrl(i.url);
     const thumb = i.imageUrl
-      ? `<a href="${u}" target="_blank"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" width="${O}" /></a>`
+      ? `<a href="${u}" target="_blank"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></a>`
       : '&nbsp;';
     const sub = i.subtitle
       ? `<span class="nl-muted" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:400;color:#6B7280;line-height:1.5;">${esc(i.subtitle)}</span>`
@@ -529,7 +519,7 @@ function dealCell(i, s, side, W2) {
     ? `<span class="nl-muted" style="font-size:14px;color:#999;text-decoration:line-through;margin-right:8px;">${esc(i.was)}</span>`
     : '';
   const imgHtml = i.imageUrl
-    ? `<div style="height:150px;overflow:hidden;line-height:0;font-size:0;border-radius:12px 12px 0 0;"><a href="${u}" rel="noopener noreferrer" target="_blank"><img alt="${esc(i.imageAlt || i.title)}" src="${escUrl(i.imageUrl)}" style="display:block;width:100%;max-width:${W2}px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#666;" width="${W2}" /></a></div>`
+    ? `<div style="height:150px;overflow:hidden;line-height:0;font-size:0;border-radius:12px 12px 0 0;"><a href="${u}" rel="noopener noreferrer" target="_blank"><img alt="${esc(i.imageAlt || i.title)}" src="${escUrl(i.imageUrl)}" style="display:block;width:100%;max-width:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#666;" /></a></div>`
     : '';
 
   return `\t\t\t<td align="center" style="width:50%;${pad}" valign="top" width="${W2}">

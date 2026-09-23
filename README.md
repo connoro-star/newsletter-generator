@@ -37,22 +37,19 @@ That is how the four sections originally drifted apart:
 | Deal Grid | 560px fixed, cards inset 4px | 560px, cards flush |
 | Link List | client-default `<ul>` indent | 560px, bullets flush |
 
-Widths are declared twice on purpose - the `width` attribute for Outlook,
-`max-width` for everything else. The Link List is built from table rows rather
+Block-level tables still declare a `width` attribute beside `max-width`, which
+costs nothing in modern clients and holds the newsletter to its column in
+Outlook. Images do not: they are percentage-only. The Link List is built from
+table rows rather
 than a `<ul>` because every email client applies its own list indent and
 Outlook's cannot be overridden.
 
-Changing Block width rescales everything together: the featured card's inner
-column is sized in percentages, so only each deal card still derives a pixel
-width, at `(width - 8) / 2`.
+Changing Block width rescales everything together; only the deal cards still
+derive a pixel width, at `(width - 8) / 2` for the card itself.
 
-Inside the Featured Article and the Article List the elements are percentage
-widths rather than pixel ones, so they reflow with whatever column they are
-given. The one exception is images: Outlook's Word engine ignores a percentage
-width on an `<img>`, so each carries an absolute `width` attribute alongside the
-percentage CSS - the featured hero at `width - 14` (6px padding plus a 1px
-border each side), the article thumbnail at 40% of the block width less the
-gutter. Both are recalculated from **Block width**.
+Every element inside a block is a percentage, images included, so they reflow
+with whatever column they are given rather than being pinned to the width they
+were generated at.
 
 In the Article List the image is top-aligned with the headline rather than
 centred against the row, so a one-line and a three-line headline both start
@@ -131,10 +128,10 @@ of tune and no media query needed for it at all:
 | 375px 13 mini | 130px | 118px | 195px | 40% |
 | 320px SE | 108px | 96px | 162px | 40% |
 
-Outlook's Word engine ignores percentage widths on an image, so the `<img>` also
-carries an absolute `width` attribute worked out from the current block width -
-the same declare-it-twice rule the rest of the template follows. Change **Block
-width** and it is recalculated.
+Images carry no pixel width at all - `width:100%` inside a percentage cell, at
+every block. Outlook's Word engine ignores percentage widths on an image and
+will fall back to the file's intrinsic size there; that is an accepted
+trade-off rather than something to design around.
 
 **Dark mode follows the reader.** `prefers-color-scheme: dark` repaints the card
 surfaces, borders and text through the `nl-card` / `nl-strong` / `nl-body` /
