@@ -246,6 +246,25 @@ const SITES = {
   PL:  { name: 'Pocket-lint',    accent: '#f01e25', tag: 'pl-newsletter-20' }
 };
 
+/* The disclaimer names the publication, so it has to follow the site selector
+   rather than sit hardcoded in the block's defaults. */
+const disclaimerFor = name =>
+  `Readers like you help support ${name}. When you buy through links in this newsletter, we may earn a small affiliate commission, at no extra cost to you.`;
+
+/* Custom has no brand, so it gets a placeholder an editor can see is unfilled
+   rather than another site's name quietly standing in. */
+const siteNameOf = s => (SITES[s && s.site] || {}).name || '[site name]';
+
+/* Rewrite only a disclaimer still carrying some preset's exact wording. One the
+   editor has reworded is their text, and switching site must not overwrite it -
+   comparing against every preset's wording is what tells the two apart. */
+function retargetDisclaimers(blocks, name) {
+  const presets = Object.values(SITES).map(v => disclaimerFor(v.name));
+  for (const b of blocks) {
+    if (b.type === 'disclaimer' && presets.includes(b.text)) b.text = disclaimerFor(name);
+  }
+}
+
 function matchSite(accent, tag) {
   const a = String(accent || '').toLowerCase();
   return Object.keys(SITES).find(k => SITES[k].accent === a && SITES[k].tag === tag) || 'custom';
@@ -347,7 +366,7 @@ const TYPES = {
     label: 'Affiliate Disclaimer',
     add: 'Disclaimer',
     summary: b => b.text,
-    defaults: () => ({ text: 'Readers like you help support Android Police. When you buy through links in this newsletter, we may earn a small affiliate commission, at no extra cost to you.' }),
+    defaults: s => ({ text: disclaimerFor(siteNameOf(s)) }),
     fields: [{ k: 'text', l: 'Disclaimer text', t: 'textarea' }]
   },
 
@@ -725,7 +744,7 @@ function normalise(obj) {
     const type = TYPE_ALIASES[b.type] || b.type;
     const def = TYPES[type];
     if (!def) continue;
-    const block = { id: b.id || uid(), type, collapsed: !!b.collapsed, ...def.defaults() };
+    const block = { id: b.id || uid(), type, collapsed: !!b.collapsed, ...def.defaults(out.settings) };
     for (const f of (def.fields || [])) if (b[f.k] !== undefined) block[f.k] = b[f.k];
     if (def.itemFields) {
       block.items = Array.isArray(b.items)
@@ -739,12 +758,17 @@ function normalise(obj) {
     if (type === 'custom' && b.html !== undefined) block.html = b.html;
     out.blocks.push(block);
   }
+  /* A project saved before the disclaimer followed the site still names whoever
+     was hardcoded at the time. Retarget it to the project's own site, which
+     only touches wording that is still some preset's exact text. */
+  const own = SITES[out.settings.site];
+  if (own) retargetDisclaimers(out.blocks, own.name);
   return out;
 }
 
 function addBlock(type) {
   const def = TYPES[type];
-  const b = { id: uid(), type, collapsed: false, ...def.defaults() };
+  const b = { id: uid(), type, collapsed: false, ...def.defaults(state.settings) };
   if (def.itemFields && !b.items.length) {
     b.items = Array.from({ length: def.defaultItems || 1 }, () => def.itemDefaults());
   }
@@ -1257,7 +1281,7 @@ $('#btnClear').addEventListener('click', () => {
       !confirm('Empty every field?\n\nThe blocks and their order stay - only the content you typed is cleared.\n\nThis cannot be undone and it overwrites the autosave, so use Save JSON first if you need this issue.')) return;
   state.blocks = state.blocks.map(b => {
     const def = TYPES[b.type];
-    const fresh = { id: b.id, type: b.type, collapsed: b.collapsed, ...def.defaults() };
+    const fresh = { id: b.id, type: b.type, collapsed: b.collapsed, ...def.defaults(state.settings) };
     if (def.itemFields) {
       const rows = b.items && b.items.length ? b.items.length : (def.defaultItems || 1);
       fresh.items = Array.from({ length: rows }, () => def.itemDefaults());
@@ -1313,8 +1337,10 @@ $('#setSite').addEventListener('change', e => {
     $('#setAccent').value = preset.accent;
     $('#setTag').value = preset.tag;
     document.documentElement.style.setProperty('--accent', preset.accent);
+    retargetDisclaimers(state.blocks, preset.name);
   }
-  renderOutput(); save();
+  /* renderAll, not renderOutput: the disclaimer's editor field changed too. */
+  renderAll();
 });
 
 /* Keep the selector honest when the colour or tag is edited by hand. */

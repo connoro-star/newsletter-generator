@@ -178,13 +178,14 @@ block.
 
 ## Sites
 
-The **Site** selector fills in that site's accent colour and Amazon affiliate tag:
+The **Site** selector fills in that site's accent colour, Amazon affiliate tag
+and the publication named in the affiliate disclaimer:
 
-| Site | Accent | Affiliate tag |
-|---|---|---|
-| AP - Android Police | `#e01a4f` | `ap-newsletter04-20` |
-| MUO - MakeUseOf | `#c70016` | `mak0954-20` |
-| PL - Pocket-lint | `#204f83` | `pl-newsletter-20` |
+| Site | Accent | Affiliate tag | Disclaimer names |
+|---|---|---|---|
+| AP - Android Police | `#e01a4f` | `ap-newsletter04-20` | Android Police |
+| MUO - MakeUseOf | `#c70016` | `mak0954-20` | MakeUseOf |
+| PL - Pocket-lint | `#f01e25` | `pl-newsletter-20` | Pocket-lint |
 
 The accent recolours the byline link, the Read More pill and the GET DEAL
 buttons together. Both fields stay editable after picking a site; editing either
@@ -192,11 +193,21 @@ to something that is not a preset flips the selector to **Custom**, and typing a
 preset's values back re-detects it. Projects saved before sites existed get
 theirs inferred from the colour and tag they already carry.
 
-Add a site by adding one entry to the `SITES` map in `index.html`.
+Add a site by adding one entry to the `SITES` map in `index.html`. The `name` is
+what the disclaimer uses, so a new site needs nothing else.
 
-> The affiliate disclaimer block is **not** part of the preset - its default text
-> names Android Police. Switching site does not rewrite it, so edit that block
-> when building for MUO or PL.
+### How the disclaimer follows the site
+
+Switching site rewrites the disclaimer **only if it still carries some preset's
+exact wording**. A disclaimer you have reworded is your text and is left alone -
+matching against every preset's wording is what tells the two apart.
+
+- A new Disclaimer block takes the site currently selected.
+- A project saved before this worked - a PL issue still naming Android Police -
+  is corrected to its own site when it loads.
+- Under **Custom** there is no brand, so a new disclaimer reads `[site name]`
+  rather than borrowing another publication's. Switching *to* Custom leaves
+  existing wording alone.
 
 ## Deals
 
