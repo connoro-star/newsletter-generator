@@ -42,8 +42,20 @@ than a `<ul>` because every email client applies its own list indent and
 Outlook's cannot be overridden.
 
 Changing Block width rescales everything together: the featured card's inner
-column becomes `width - 14` (6px padding plus a 1px border each side), and
-each deal card `(width - 8) / 2`.
+column is sized in percentages, so only each deal card still derives a pixel
+width, at `(width - 8) / 2`.
+
+Inside the Featured Article and the Article List the elements are percentage
+widths rather than pixel ones, so they reflow with whatever column they are
+given. The one exception is images: Outlook's Word engine ignores a percentage
+width on an `<img>`, so each carries an absolute `width` attribute alongside the
+percentage CSS - the featured hero at `width - 14` (6px padding plus a 1px
+border each side), the article thumbnail at 40% of the block width less the
+gutter. Both are recalculated from **Block width**.
+
+In the Article List the image is top-aligned with the headline rather than
+centred against the row, so a one-line and a three-line headline both start
+level with the top of the thumbnail.
 
 ## Blocks
 

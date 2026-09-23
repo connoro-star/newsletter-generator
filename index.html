@@ -406,10 +406,10 @@ ${inner}
 </table>`;
 }
 
-/* Inner width of the featured card: block width less 6px padding and 1px
-   border on each side. Derived from the padding on the link/div below - if that
-   padding changes, this must change with it or the inner tables and the hero
-   image are sized for space the tile no longer has. */
+/* The featured card's inner elements are sized in percentages, so this is now
+   only the absolute fallback the hero image hands to Outlook's Word engine,
+   which ignores percentage widths on an image. Block width less the 6px padding
+   and 1px border on each side; if that padding changes, this changes with it. */
 const innerWidth = B => B - 14;
 
 function gFeatured(b, s) {
@@ -426,7 +426,7 @@ function gFeatured(b, s) {
        gap whether or not a dek follows it. This used to open out to 16px with no
        dek, which is why it was a conditional. */
     const headGap = 6;
-    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
 \t\t\t\t\t\t\t<td style="padding-bottom: ${headGap}px;">
@@ -440,10 +440,10 @@ function gFeatured(b, s) {
   if (b.dek) out.push(`\t\t\t\t<p class="nl-body" style="margin:0;padding-bottom: 6px;color: #333333;">${esc(b.dek)}</p>`);
 
   if (b.imageUrl) {
-    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" width="${C}" /></td>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" width="${C}" /></td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
@@ -452,7 +452,7 @@ function gFeatured(b, s) {
   if (b.body) out.push(`\t\t\t\t<p class="nl-body" style="margin:0;padding-bottom: 6px;color: #333333;">${esc(b.body)}</p>`);
 
   if (b.cta) {
-    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="${C}">
+    out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
 \t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><span style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</span></td>
@@ -503,8 +503,8 @@ function gHits(b, s) {
     const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
 \t\t\t\t<tbody>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;" valign="middle" width="${P}%">${thumb}</td>
-\t\t\t\t\t\t<td style="padding:0;" valign="middle"><a href="${u}" style="text-decoration:none;display:block;"><span class="nl-strong" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
+\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;" valign="top" width="${P}%">${thumb}</td>
+\t\t\t\t\t\t<td style="padding:0;" valign="top"><a href="${u}" style="text-decoration:none;display:block;"><span class="nl-strong" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
 \t\t\t\t\t</tr>
 \t\t\t\t</tbody>
 \t\t\t</table>`;
