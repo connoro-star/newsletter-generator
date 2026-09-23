@@ -57,12 +57,15 @@ In the Article List the image is top-aligned with the headline rather than
 centred against the row, so a one-line and a three-line headline both start
 level with the top of the thumbnail.
 
-Every bordered card sits on the same 6px gutter between its content and its
-border - the featured tile, the article-list rows and the deal cards - so
-content uses as much of the column as the border allows. At a 560px block width
-an article-list row gives 546px of its 559px to content. The deal cards keep
-their vertical rhythm (16px above the title, 12px under the price); only the
-horizontal padding came down, since that is what was costing width.
+Content sits flush to every card border - the featured tile, the article-list
+rows and the deal cards - so nothing is lost horizontally but the 1px border
+itself. At a 560px block width an article-list row gives 558px of its 559px to
+content, and the featured hero image spans the tile edge to edge. The deal cards
+keep their vertical rhythm (16px above the title, 12px under the price); only
+the horizontal padding came out, since that is what was costing width.
+
+The 12px gutter between an article-list thumbnail and its headline stays - that
+is spacing between two elements, not between an element and the border.
 
 ## Blocks
 
