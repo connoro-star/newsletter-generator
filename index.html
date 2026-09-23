@@ -485,7 +485,7 @@ function gHits(b, s) {
   return b.items.filter(i => i.title || i.url).map(i => {
     const u = escUrl(i.url);
     const thumb = i.imageUrl
-      ? `<a href="${u}" target="_blank"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></a>`
+      ? `<a href="${u}" target="_blank" style="display:block;line-height:0;font-size:0;"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></a>`
       : '&nbsp;';
     const sub = i.subtitle
       ? `<span class="nl-muted" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:400;color:#6B7280;line-height:1.5;">${esc(i.subtitle)}</span>`
@@ -493,7 +493,7 @@ function gHits(b, s) {
     const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
 \t\t\t\t<tbody>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;" valign="top" width="${P}%">${thumb}</td>
+\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;vertical-align:middle;" valign="middle" width="${P}%">${thumb}</td>
 \t\t\t\t\t\t<td style="padding:0;" valign="top"><a href="${u}" style="text-decoration:none;display:block;"><span class="nl-strong" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
 \t\t\t\t\t</tr>
 \t\t\t\t</tbody>

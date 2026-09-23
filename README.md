@@ -51,9 +51,14 @@ Every element inside a block is a percentage, images included, so they reflow
 with whatever column they are given rather than being pinned to the width they
 were generated at.
 
-In the Article List the image is top-aligned with the headline rather than
-centred against the row, so a one-line and a three-line headline both start
-level with the top of the thumbnail.
+In the Article List the image is centred vertically in its cell while the
+headline stays top-aligned, so a short image sits level with the middle of a
+tall row and a wrapping headline still starts at the top.
+
+Both the thumbnail's link and the image itself are blocks with no line height.
+An inline `<img>` sits on the text baseline, so the line box adds descender
+space beneath it and the cell ends up centring that box rather than the picture
+- about 4px out at every width.
 
 Every bordered card keeps a 6px gutter between its content and its border - the
 featured tile, the article-list rows and the deal cards. At the default 600px
