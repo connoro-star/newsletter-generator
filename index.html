@@ -174,7 +174,7 @@
         </div>
         <div>
           <label for="setWidth">Block width (px)</label>
-          <input type="number" class="inp" id="setWidth" value="560" min="320" max="700" step="10">
+          <input type="number" class="inp" id="setWidth" value="600" min="320" max="700" step="10">
         </div>
         <div>
           <label for="setTag">Amazon affiliate tag</label>
@@ -408,9 +408,9 @@ ${inner}
 
 /* The featured card's inner elements are sized in percentages, so this is now
    only the absolute fallback the hero image hands to Outlook's Word engine,
-   which ignores percentage widths on an image. Content sits flush to the card,
-   so the only thing between it and the block width is the 1px border a side. */
-const innerWidth = B => B - 2;
+   which ignores percentage widths on an image. Block width less the 6px padding
+   and 1px border on each side; if that padding changes, this changes with it. */
+const innerWidth = B => B - 14;
 
 function gFeatured(b, s) {
   const B = s.width, C = innerWidth(B), rgb = hexToRgb(s.accent);
@@ -466,10 +466,10 @@ function gFeatured(b, s) {
   /* Padding sits on the link, not the cell, so the click target covers the
      whole bordered tile rather than stopping at the content edge. */
   const wrapped = b.articleUrl
-    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" class="nl-body" style="display:block;padding:0;color:#333333;text-decoration:none;" target="_blank">
+    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" class="nl-body" style="display:block;padding:6px;color:#333333;text-decoration:none;" target="_blank">
 ${inner}
 \t\t\t</a>`
-    : `\t\t\t<div style="padding:0;">
+    : `\t\t\t<div style="padding:6px;">
 ${inner}
 \t\t\t</div>`;
 
@@ -509,7 +509,7 @@ function gHits(b, s) {
 \t\t\t\t</tbody>
 \t\t\t</table>`;
     return shell(inner, B,
-      'padding:0;border:1px solid #E7E8EC;border-radius:10px;background-color:#FFFFFF;',
+      'padding:6px;border:1px solid #E7E8EC;border-radius:10px;background-color:#FFFFFF;',
       'margin:0 auto 10px;', 'nl-card');
   }).join('\n\n');
 }
@@ -541,13 +541,13 @@ function dealCell(i, s, side, W2) {
 \t\t\t\t\t\t</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-strong" style="padding:16px 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.3;mso-line-height-rule:exactly;color:#1d1d1f;word-wrap:break-word;">${esc(i.title)}</td>
+\t\t\t\t\t\t<td class="nl-strong" style="padding:16px 6px 8px 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.3;mso-line-height-rule:exactly;color:#1d1d1f;word-wrap:break-word;">${esc(i.title)}</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-price-row" style="padding:0 0 12px 0;mso-line-height-rule:exactly;"><span class="nl-strong" style="font-size:24px;font-weight:700;color:#1d1d1f;margin-right:8px;">${esc(i.price)}</span>${wasHtml}${badgeHtml}</td>
+\t\t\t\t\t\t<td class="nl-price-row" style="padding:0 6px 12px 6px;mso-line-height-rule:exactly;"><span class="nl-strong" style="font-size:24px;font-weight:700;color:#1d1d1f;margin-right:8px;">${esc(i.price)}</span>${wasHtml}${badgeHtml}</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td align="center" style="padding:0 0 16px 0;mso-line-height-rule:exactly;">
+\t\t\t\t\t\t<td align="center" style="padding:0 6px 16px 6px;mso-line-height-rule:exactly;">
 \t\t\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;">
 \t\t\t\t\t\t\t<tbody>
 \t\t\t\t\t\t\t\t<tr>
@@ -704,7 +704,7 @@ function buildHTML() {
    STATE
    ============================================================ */
 const STORAGE_KEY = 'nl-builder-v1';
-let state = { settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 }, blocks: [] };
+let state = { settings: { site: 'AP', accent: '#e01a4f', width: 600, tag: 'ap-newsletter04-20', v: 2 }, blocks: [] };
 
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
@@ -730,7 +730,7 @@ function normalise(obj) {
   const s = obj.settings || {};
   /* v1 stored the featured card's inner text column (530). v2 stores the outer
      width every block shares; 560 is the same layout measured from the outside. */
-  let width = parseInt(s.width, 10) || 560;
+  let width = parseInt(s.width, 10) || 600;
   if (!s.v && width === 530) width = 560;
   const accent = s.accent || '#e01a4f';
   const tag = s.tag ?? 'ap-newsletter04-20';
@@ -899,14 +899,15 @@ function renderOutput() {
   $('#blockCount').textContent = state.blocks.length + ' block' + (state.blocks.length === 1 ? '' : 's');
 
   const mobile = preview.width !== 600, d = preview.dark;
-  /* Desktop: 600px outer with 20px padding leaves the 560px content column the
-     deal grid is built to. Phone: 375px, the narrowest common handset. */
+  /* The blocks are sized to the newsletter width itself, so the preview carries
+     no gutter of its own - what you see spans the full column. Phone: 375px,
+     the narrowest common handset. */
   $('#preview').style.width = mobile ? '375px' : '680px';
   $('#preview').srcdoc = `<!doctype html><html><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       html{background:${d ? '#0d0d0f' : '#f4f4f5'}}
-      body{width:100%;max-width:${mobile ? 375 : 600}px;box-sizing:border-box;margin:0 auto;padding:20px;
+      body{width:100%;max-width:${mobile ? 375 : 600}px;box-sizing:border-box;margin:0 auto;padding:0;
         background:${d ? '#121214' : '#ffffff'};
         font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:${d ? '#d6d6db' : '#222'}}
       img{max-width:100%}a{color:${state.settings.accent}}
@@ -1453,7 +1454,7 @@ document.addEventListener('keydown', e => {
    SAMPLE (the approved mock-up, as data)
    ============================================================ */
 const SAMPLE = {
-  settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
+  settings: { site: 'AP', accent: '#e01a4f', width: 600, tag: 'ap-newsletter04-20', v: 2 },
   blocks: [
     { type: 'featured', collapsed: false,
       headline: 'Samsung ends support for two Galaxy watches',
@@ -1519,7 +1520,7 @@ const SAMPLE = {
    open with five, and changing defaultItems changes this layout with it.
    ============================================================ */
 const DEFAULT_LAYOUT = {
-  settings: { site: 'AP', accent: '#e01a4f', width: 560, tag: 'ap-newsletter04-20', v: 2 },
+  settings: { site: 'AP', accent: '#e01a4f', width: 600, tag: 'ap-newsletter04-20', v: 2 },
   blocks: [
     { type: 'featured',   collapsed: false },
     { type: 'heading',    collapsed: false, text: 'Today\u2019s Hits' },

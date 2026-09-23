@@ -15,13 +15,14 @@ single file and behaves the same either way.
 > published on a public host, not a product. Do not put anything confidential
 > into a draft. See [SECURITY.md](SECURITY.md).
 
-The preview renders at a 600px email width with 20px padding, leaving a 560px
-content column - so what you see matches a real inbox.
+The preview renders at a 600px email width with no gutter of its own: blocks are
+sized to the newsletter itself, so they run edge to edge and what you see is the
+full column.
 
 ## Alignment
 
 Every top-level block renders through `shell()` at the same **Block width**
-(Settings, default 560px), centred, so all section types share one column with
+(Settings, default 600px), centred, so all section types share one column with
 identical left and right edges.
 
 The rule that keeps them aligned: **padding and borders go on the inner `<td>`,
@@ -57,12 +58,14 @@ In the Article List the image is top-aligned with the headline rather than
 centred against the row, so a one-line and a three-line headline both start
 level with the top of the thumbnail.
 
-Content sits flush to every card border - the featured tile, the article-list
-rows and the deal cards - so nothing is lost horizontally but the 1px border
-itself. At a 560px block width an article-list row gives 558px of its 559px to
-content, and the featured hero image spans the tile edge to edge. The deal cards
-keep their vertical rhythm (16px above the title, 12px under the price); only
-the horizontal padding came out, since that is what was costing width.
+Every bordered card keeps a 6px gutter between its content and its border - the
+featured tile, the article-list rows and the deal cards. At the default 600px
+block width an article-list row gives 586px of its 599px to content. The deal
+cards keep a taller vertical rhythm (16px above the title, 12px under the
+price); only the horizontal padding is 6px.
+
+The blocks themselves have no outer gutter: at a 600px block width they span the
+600px newsletter, so the cards' borders sit on its edges.
 
 The 12px gutter between an article-list thumbnail and its headline stays - that
 is spacing between two elements, not between an element and the border.
