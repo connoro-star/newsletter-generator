@@ -290,7 +290,7 @@ const TYPES = {
     label: 'Article List (Today’s Hits)',
     add: 'Article List',
     defaultItems: 5,
-    thumb: 200,
+    thumbPct: 40,
     summary: b => `${b.items.length} article${b.items.length === 1 ? '' : 's'}`,
     defaults: () => ({ items: [] }),
     itemLabel: 'Article',
@@ -466,11 +466,17 @@ function gHeading(b, s) {
 }
 
 function gHits(b, s) {
-  const B = s.width, T = TYPES.hits.thumb;
+  const B = s.width, P = TYPES.hits.thumbPct;
+  /* The cell is a percentage so the image keeps its share of the tile at any
+     width, phone included, with no breakpoint to drift out of tune. Outlook's
+     Word engine ignores percentage widths on an image, so the img also carries
+     an absolute width attribute worked out from the current block width - the
+     same declare-it-twice rule the rest of the template follows. */
+  const O = Math.round(B * P / 100) - 12;
   return b.items.filter(i => i.title || i.url).map(i => {
     const u = escUrl(i.url);
     const thumb = i.imageUrl
-      ? `<a href="${u}" target="_blank"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${T}px; height: auto;" width="${T}" /></a>`
+      ? `<a href="${u}" target="_blank"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" width="${O}" /></a>`
       : '&nbsp;';
     const sub = i.subtitle
       ? `<span class="nl-muted" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:400;color:#6B7280;line-height:1.5;">${esc(i.subtitle)}</span>`
@@ -478,7 +484,7 @@ function gHits(b, s) {
     const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
 \t\t\t\t<tbody>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${T}px;" valign="middle" width="${T}">${thumb}</td>
+\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;" valign="middle" width="${P}%">${thumb}</td>
 \t\t\t\t\t\t<td style="padding:0;" valign="middle"><a href="${u}" style="text-decoration:none;display:block;"><span class="nl-strong" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
 \t\t\t\t\t</tr>
 \t\t\t\t</tbody>
@@ -599,24 +605,14 @@ const DARK_RULES = `
    inline styles remain the source of truth. Two things cannot be done inline
    at all, which is why this block exists:
 
-     - a media query, so the article-list thumbnail can shrink on a phone
      - prefers-color-scheme, so the issue can follow the reader's dark mode
 
    Dark mode is uneven by client. Apple Mail, iOS Mail and Outlook.com honour
    prefers-color-scheme. Gmail ignores it and applies its own inversion, which
    these colours are chosen to survive rather than fight. */
-function emailCss(T) {
+function emailCss() {
   return `<style>
   :root { color-scheme: light dark; supported-color-schemes: light dark; }
-
-  /* On a phone the ${T}px thumbnail leaves too little width for the headline
-     beside it. A percentage rather than a fixed step keeps the image at about a
-     third of the tile on any handset width, so the ratio holds on a 320px phone
-     and a 430px one alike. */
-  @media only screen and (max-width:600px) {
-    .nl-thumb-cell { width:33% !important; }
-    .nl-thumb { width:100% !important; max-width:100% !important; }
-  }
 
   @media (prefers-color-scheme: dark) {${DARK_RULES}
   }
@@ -682,7 +678,7 @@ function buildHTML() {
     prev = b.type;
   }
   if (!parts.length) return '';
-  return [emailCss(TYPES.hits.thumb), ...parts].join('\n\n');
+  return [emailCss(), ...parts].join('\n\n');
 }
 
 /* ============================================================

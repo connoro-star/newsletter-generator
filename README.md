@@ -51,7 +51,7 @@ each deal card `(width - 8) / 2`.
 |---|---|
 | Featured Article | Bordered hero card, entirely clickable: headline, dek, image, summary, Read More pill |
 | Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
-| Article List | 200px thumbnail + title + subtitle rows; starts with 5 empty tiles |
+| Article List | Thumbnail at 40% of the tile + title + subtitle rows; starts with 5 empty tiles |
 | Deal Grid | Product cards, 2 per row, auto `SAVE x%` badge |
 | Link List | Numbered rows of linked headlines, marker in the brand accent |
 | Disclaimer | Italic affiliate footnote |
@@ -87,23 +87,29 @@ next block is the same as before.
 
 ## Mobile and dark mode
 
-The output now starts with a small `<style>` block. Everything in it is an
-override on a design that already works without it - the inline styles are still
-the source of truth - because it covers the two things inline CSS cannot express:
+The output starts with a small `<style>` block. Everything in it is an override
+on a design that already works without it - the inline styles are still the
+source of truth - because it covers the one thing inline CSS cannot express:
+`prefers-color-scheme`. The thumbnail sizing is inline, so it survives a CMS
+that strips `<style>`.
 
-**Thumbnails shrink on a phone.** At 560px the article-list thumbnail is a fixed
-200px, which on a handset left the headline almost no room. Under 600px the
-thumbnail cell becomes `33%` rather than a fixed pixel step, so the image holds
-about a third of the tile at any width instead of only at the one size a step
-was tuned for:
+**The article-list thumbnail is 40% of the tile**, not a pixel size. It was a
+fixed 200px, which on a handset left the headline almost no room. A percentage
+holds the same proportion at every width, so there is no breakpoint to drift out
+of tune and no media query needed for it at all:
 
-| Viewport | Image | Text | Image share |
-|---|---|---|---|
-| 640px desktop | 200px | 322px | 38% |
-| 430px Pro Max | 113px | 255px | 31% |
-| 390px iPhone 14 | 100px | 228px | 30% |
-| 375px 13 mini | 95px | 218px | 30% |
-| 320px SE | 77px | 181px | 30% |
+| Viewport | Cell | Image | Text | Share |
+|---|---|---|---|---|
+| 640px desktop | 214px | 202px | 320px | 40% |
+| 430px Pro Max | 152px | 140px | 228px | 40% |
+| 390px iPhone 14 | 136px | 124px | 204px | 40% |
+| 375px 13 mini | 130px | 118px | 195px | 40% |
+| 320px SE | 108px | 96px | 162px | 40% |
+
+Outlook's Word engine ignores percentage widths on an image, so the `<img>` also
+carries an absolute `width` attribute worked out from the current block width -
+the same declare-it-twice rule the rest of the template follows. Change **Block
+width** and it is recalculated.
 
 **Dark mode follows the reader.** `prefers-color-scheme: dark` repaints the card
 surfaces, borders and text through the `nl-card` / `nl-strong` / `nl-body` /
