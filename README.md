@@ -185,6 +185,32 @@ console.
 > auto-fill. `newsletter_generator_project/script.js` still calls it and is
 > broken the same way.
 
+### Amazon blocks the readers, so Deal Grid auto-fill does not work
+
+Checked 2026-09-23. Amazon answers the reader with a bot-check interstitial -
+about 3.5KB of "Click the button below to continue shopping" - rather than the
+product page, consistently across different product URLs. There is no product
+title, price or image in it to read.
+
+That page is a `200` with real markup, so it used to pass every check: the
+scrape ran against the interstitial, found no `#productTitle`, fell back to the
+document title and filled the product name with **"Amazon.com"** while the toast
+said it had succeeded. A challenge page is now detected and treated as a failed
+fetch, so the next reader is tried and, if that also fails, auto-fill says so
+and fills nothing. Wrong data is worse than no data.
+
+`api.allorigins.win`, the fallback, is currently returning `522` for every URL,
+Amazon or not - it is down, not just blocked.
+
+**So: paste deal titles, prices and images by hand for now.** Auto-fill still
+works for the Featured Article, Article List and Link List, which read editorial
+pages rather than Amazon.
+
+Restoring it means a reader Amazon does not block - a paid tier, or Amazon's own
+Product Advertising API, which needs credentials and an approved Associates
+account. Adding another free proxy sends every pasted URL to one more third
+party, so that is a decision to take deliberately rather than by default.
+
 ## Featured Article
 
 The whole tile is one link to the Article URL - headline, dek, image, summary and

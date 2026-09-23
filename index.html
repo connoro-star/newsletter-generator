@@ -1033,6 +1033,19 @@ const READERS = [
     init: {} }
 ];
 
+/* A bot check is a 200 with a real page in it, just not the one asked for.
+   Amazon serves a "Continue shopping" interstitial of about 3.5KB, which clears
+   the empty-response guard, so without this the scrape ran against the
+   interstitial and quietly produced a title of "Amazon.com". Short page plus a
+   challenge phrase is the test - the length guard keeps an article that merely
+   mentions captchas from being discarded. */
+const BLOCKED_SIGNS = /(continue shopping|are you a robot|robot check|unusual traffic|automated access|enable javascript and cookies|verify (you are|you're) human|access denied)/i;
+
+function looksBlocked(doc) {
+  const t = tidy(doc.body ? doc.body.textContent : '');
+  return t.length < 1200 && BLOCKED_SIGNS.test(t);
+}
+
 async function fetchDoc(url) {
   const problems = [];
   for (const r of READERS) {
@@ -1048,7 +1061,11 @@ async function fetchDoc(url) {
 
       const html = await res.text();
       if (html.length < 500) throw new Error('empty response');
-      return new DOMParser().parseFromString(html, 'text/html');
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      /* Treat a challenge page as a failure so the next reader is tried rather
+         than the interstitial being scraped as if it were the article. */
+      if (looksBlocked(doc)) throw new Error('blocked by a bot check');
+      return doc;
     } catch (e) {
       problems.push(r.name + ': ' + (e.name === 'AbortError' ? 'timed out' : e.message));
     }
@@ -1092,6 +1109,8 @@ function scrapeAmazon(doc) {
   let title = txt('#productTitle');
   if (!title) title = tidy((doc.title || '').replace(/^Amazon\.com\s*:\s*/i, '').split(/\s+:\s+/)[0]);
   title = title.split('|')[0].trim();          // drop the spec dump after the first pipe
+  /* An interstitial's <title> is just the storefront, which is not a product. */
+  if (/^amazon\.[a-z.]+$/i.test(title)) title = '';
 
   const price = txt('#corePrice_feature_div .a-offscreen, .a-price .a-offscreen');
   const was   = txt('.a-text-price.apex-basisprice-value .a-offscreen, ' +
@@ -1223,7 +1242,9 @@ async function autofill(btn) {
     else toast('Filled from ' + new URL(url).hostname);
   } catch (err) {
     console.error('[autofill]', url, err);
-    toast('Could not fetch that page (' + err.message + ') - enter the details manually', true);
+    toast(/bot check/.test(err.message)
+      ? 'That site is blocking automated reads - enter the details manually'
+      : 'Could not fetch that page (' + err.message + ') - enter the details manually', true);
   } finally {
     btn.disabled = false;
     btn.textContent = label;
