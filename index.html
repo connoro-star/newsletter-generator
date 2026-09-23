@@ -1112,6 +1112,44 @@ function scrapeAmazon(doc) {
   return { title, price, was, image };
 }
 
+/* Article pages carry an author card - a bio or excerpt paragraph sitting near
+   the headline - that reads like prose and clears the length test, so it was
+   being taken as the summary. There is no reliable wording to match on, but it
+   always sits inside an author, byline, bio or excerpt container, or in page
+   furniture, so the exclusion is structural rather than textual. */
+const NOT_BODY = (() => {
+  const words = ['author', 'byline', 'bio', 'excerpt', 'contributor', 'profile'];
+  const build = flag => words
+    .flatMap(w => [`[class*="${w}"${flag}]`, `[id*="${w}"${flag}]`])
+    .concat('[rel~="author"]', 'address', 'aside', 'footer', 'nav', 'header',
+            'figcaption', 'blockquote')
+    .join(',');
+  /* The case-insensitive attribute flag is Selectors Level 4 and not universal.
+     Fall back to a case-sensitive match rather than throwing, which would take
+     auto-fill down with it. */
+  const withFlag = build(' i');
+  try { document.createDocumentFragment().querySelector(withFlag); return withFlag; }
+  catch { return build(''); }
+})();
+
+/* Prefer a marked-up article body, so a long paragraph in a sidebar or a
+   related-articles rail cannot win on document order alone. */
+const BODY_SCOPE = 'article, [itemprop="articleBody"], [class*="article-body"], [class*="entry-content"], main';
+
+function pickBody(doc, dek) {
+  const usable = el => {
+    if (el.closest(NOT_BODY)) return false;
+    const t = tidy(el.textContent);
+    return t && t.length >= 60 && !/^(by |published|updated|last updated)/i.test(t);
+  };
+  const firstIn = root => {
+    const el = [...root.querySelectorAll('p')].find(usable);
+    return el ? tidy(el.textContent) : '';
+  };
+  const scope = doc.querySelector(BODY_SCOPE);
+  return (scope && firstIn(scope)) || firstIn(doc) || dek;
+}
+
 async function scrape(url) {
   const doc = await fetchDoc(url);
 
@@ -1131,9 +1169,7 @@ async function scrape(url) {
       : imgs[0], url);
   }
 
-  const body = [...doc.querySelectorAll('p')]
-    .map(el => tidy(el.textContent))
-    .find(t => t && t.length >= 60 && !/^(by |published|updated)/i.test(t)) || dek;
+  const body = pickBody(doc, dek);
 
   let price = '', was = '';
   if (/(^|\.)amazon\./i.test(new URL(url).hostname)) {

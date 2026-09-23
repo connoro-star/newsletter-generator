@@ -151,6 +151,30 @@ price and list price.
 Only fields you have left blank get filled, so your edits are never overwritten.
 Always check what came back before sending - scraping is best-effort.
 
+### How the Summary Paragraph is chosen
+
+The summary is the article's first real paragraph, which means stepping over the
+author card. A bio or author excerpt reads like prose and is easily long enough
+to pass a length test, so it used to win on document order and land in the
+Featured Article's summary.
+
+The paragraph is now chosen structurally rather than by wording, because a bio
+has no reliable phrasing to match on:
+
+- Paragraphs inside anything whose class or id contains `author`, `byline`,
+  `bio`, `excerpt`, `contributor` or `profile` are skipped, as are `[rel=author]`,
+  `<address>`, `<aside>`, `<footer>`, `<nav>`, `<header>`, `<figcaption>` and
+  `<blockquote>`.
+- A marked-up article body wins over document order, so a long paragraph in a
+  sidebar or a related-articles rail cannot be picked first. The scope is
+  `<article>`, `[itemprop=articleBody]`, `article-body`, `entry-content`,
+  `<main>`.
+- If that finds nothing the whole page is tried, and failing that the summary
+  falls back to the page's meta description.
+
+Add a container to the `NOT_BODY` list in `index.html` if a site puts its author
+card somewhere new.
+
 Keyless use of the reader is rate limited to about **20 fetches per minute**. If
 you hit it the toast says so; wait a minute and carry on. `api.allorigins.win` is
 tried as a fallback. Failures name the actual cause, with detail in the browser
