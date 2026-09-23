@@ -509,7 +509,7 @@ function gHits(b, s) {
 \t\t\t\t</tbody>
 \t\t\t</table>`;
     return shell(inner, B,
-      'padding:12px;border:1px solid #E7E8EC;border-radius:10px;background-color:#FFFFFF;',
+      'padding:6px;border:1px solid #E7E8EC;border-radius:10px;background-color:#FFFFFF;',
       'margin:0 auto 10px;', 'nl-card');
   }).join('\n\n');
 }
@@ -541,13 +541,13 @@ function dealCell(i, s, side, W2) {
 \t\t\t\t\t\t</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-strong" style="padding:16px 16px 8px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.3;mso-line-height-rule:exactly;color:#1d1d1f;word-wrap:break-word;">${esc(i.title)}</td>
+\t\t\t\t\t\t<td class="nl-strong" style="padding:16px 6px 8px 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.3;mso-line-height-rule:exactly;color:#1d1d1f;word-wrap:break-word;">${esc(i.title)}</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-price-row" style="padding:0 16px 12px 16px;mso-line-height-rule:exactly;"><span class="nl-strong" style="font-size:24px;font-weight:700;color:#1d1d1f;margin-right:8px;">${esc(i.price)}</span>${wasHtml}${badgeHtml}</td>
+\t\t\t\t\t\t<td class="nl-price-row" style="padding:0 6px 12px 6px;mso-line-height-rule:exactly;"><span class="nl-strong" style="font-size:24px;font-weight:700;color:#1d1d1f;margin-right:8px;">${esc(i.price)}</span>${wasHtml}${badgeHtml}</td>
 \t\t\t\t\t</tr>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td align="center" style="padding:0 16px 16px 16px;mso-line-height-rule:exactly;">
+\t\t\t\t\t\t<td align="center" style="padding:0 6px 16px 6px;mso-line-height-rule:exactly;">
 \t\t\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;">
 \t\t\t\t\t\t\t<tbody>
 \t\t\t\t\t\t\t\t<tr>
@@ -1203,6 +1203,15 @@ async function scrape(url) {
   return { title, dek, image, imageAlt, body, price, was };
 }
 
+/* Which item fields each block type hands to auto-fill, and where each comes
+   from in a scrape result. */
+const AUTOFILLS = {
+  featured: { headline: 'title', dek: 'dek', body: 'body', imageUrl: 'image', imageAlt: 'imageAlt' },
+  hits:     { title: 'title', subtitle: 'dek', imageUrl: 'image', imageAlt: 'imageAlt' },
+  mostread: { title: 'title' },
+  deals:    { title: 'title', imageUrl: 'image', imageAlt: 'imageAlt', price: 'price', was: 'was' }
+};
+
 async function autofill(btn) {
   const path = btn.dataset.path;
   const r = resolvePath(path);
@@ -1218,26 +1227,13 @@ async function autofill(btn) {
     const d = await scrape(url);
     const o = r.obj;
 
-    if (r.block.type === 'featured') {
-      o.headline   = o.headline   || d.title;
-      o.dek        = o.dek        || d.dek;
-      o.body       = o.body       || d.body;
-      o.imageUrl   = o.imageUrl   || d.image;
-      o.imageAlt   = o.imageAlt   || d.imageAlt;
-    } else if (r.block.type === 'hits') {
-      o.title    = o.title    || d.title;
-      o.subtitle = o.subtitle || d.dek;
-      o.imageUrl = o.imageUrl || d.image;
-      o.imageAlt = o.imageAlt || d.imageAlt;
-    } else if (r.block.type === 'mostread') {
-      o.title = o.title || d.title;
-    } else if (r.block.type === 'deals') {
-      o.title    = o.title    || d.title;
-      o.imageUrl = o.imageUrl || d.image;
-      o.imageAlt = o.imageAlt || d.imageAlt;
-      o.price    = o.price    || d.price;
-      o.was      = o.was      || d.was;
-    }
+    /* Replace, do not top up. Every field auto-fill owns on this item is
+       written from the fetch, so anything left over from a previous URL is
+       cleared rather than surviving next to freshly fetched values and reading
+       as if it belonged with them. The URL field is the input and is not in
+       any map, so it is never touched. */
+    const map = AUTOFILLS[r.block.type];
+    if (map) for (const f in map) o[f] = d[map[f]] || '';
     if (!d.title) toast('Fetched the page but found no title - fill the fields manually', true);
     else toast('Filled from ' + new URL(url).hostname);
   } catch (err) {

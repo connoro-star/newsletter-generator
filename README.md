@@ -57,6 +57,13 @@ In the Article List the image is top-aligned with the headline rather than
 centred against the row, so a one-line and a three-line headline both start
 level with the top of the thumbnail.
 
+Every bordered card sits on the same 6px gutter between its content and its
+border - the featured tile, the article-list rows and the deal cards - so
+content uses as much of the column as the border allows. At a 560px block width
+an article-list row gives 546px of its 559px to content. The deal cards keep
+their vertical rhythm (16px above the title, 12px under the price); only the
+horizontal padding came down, since that is what was costing width.
+
 ## Blocks
 
 | Block | Output |
@@ -148,7 +155,23 @@ Open Graph tags supply title, dek, and image. Amazon pages have no OG tags, so
 product URLs are read with Amazon-specific selectors that also pull the sale
 price and list price.
 
-Only fields you have left blank get filled, so your edits are never overwritten.
+**Auto-fill replaces every field it owns on that item**, rather than only
+filling blanks. Pointing an item at a new URL and pressing Auto-fill therefore
+clears what the previous URL left behind: if the new page has no price, the old
+price is emptied rather than sitting next to a new title as though it belonged
+with it. The URL box itself is the input and is never touched.
+
+| Block | Fields Auto-fill owns |
+|---|---|
+| Featured Article | headline, dek, summary, hero image, image alt |
+| Article List | title, subtitle, thumbnail, image alt |
+| Link List | title |
+| Deal Grid | title, image, image alt, price, list price |
+
+> This reverses the old behaviour, where a filled field was left alone. Anything
+> you have written by hand into one of those fields will be overwritten the next
+> time you press Auto-fill on that item.
+
 Always check what came back before sending - scraping is best-effort.
 
 ### How the Summary Paragraph is chosen
