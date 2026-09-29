@@ -590,11 +590,19 @@ ${dealCell(items[n + 1], cfg, W2)}
    indent on wrapped lines, and leaves the marker free to take the brand
    accent - an <ol> marker inherits the <li> colour in most clients and cannot
    be styled separately from the link text. 24px fits a two-digit number. */
+/* The link text takes the brand accent, matching the number beside it. Mail
+   clients force their own colour on an <a>, so it is stated on the anchor as
+   well as the cell, and the underline is kept so the link still reads as one
+   without relying on colour alone.
+
+   This cell is deliberately not nl-body: that class exists to repaint body text
+   for dark mode, which would override the accent and leave the number coloured
+   and the link grey. */
 function gMostRead(b, s) {
   const rows = b.items.filter(i => i.title || i.url).map((i, n) =>
 `\t\t\t\t\t<tr>
 \t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:${s.accent};font-weight:700;" valign="top" width="24">${n + 1}.</td>
-\t\t\t\t\t\t<td class="nl-body" style="padding:0 0 8px 0;font-size:15px;line-height:1.5;" valign="top"><a href="${escUrl(i.url)}">${esc(i.title)}</a></td>
+\t\t\t\t\t\t<td style="padding:0 0 8px 0;font-size:15px;line-height:1.5;color:${s.accent};" valign="top"><a href="${escUrl(i.url)}" style="color:${s.accent};text-decoration:underline;">${esc(i.title)}</a></td>
 \t\t\t\t\t</tr>`).join('\n');
   if (!rows) return '';
   const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">

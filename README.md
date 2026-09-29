@@ -97,7 +97,7 @@ is spacing between two elements, not between an element and the border.
 | Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
 | Article List | Thumbnail at 40% of the tile + title + subtitle rows; starts with 5 empty tiles |
 | Deal Grid | Product cards, 2 per row, equal height, 2:1 image crop, auto `SAVE x%` badge |
-| Link List | Numbered rows of linked headlines, marker in the brand accent |
+| Link List | Numbered rows of linked headlines, number and link text both in the brand accent |
 | Disclaimer | Italic affiliate footnote |
 | Custom HTML | Raw markup, passed through untouched |
 
