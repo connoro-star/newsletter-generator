@@ -60,6 +60,23 @@ An inline `<img>` sits on the text baseline, so the line box adds descender
 space beneath it and the cell ends up centring that box rather than the picture
 - about 4px out at every width.
 
+### Deal cards
+
+The card's border, radius and background sit on the `<td>`, not on a table
+inside it. Two cells of a row are equal height by definition, so a card drawn on
+the cell matches the one beside it however its title wraps; a table nested in
+the cell does not inherit that, because percentage heights on a nested table are
+ignored and the shorter card stayed short. The 8px gutter is its own spacer
+cell, which is what frees the card cells of the padding that used to hold it.
+The title reserves two lines, so the price and button line up across a row.
+
+The image crop is a ratio rather than a height. A fixed 150px box matched the
+image only at the width it was tuned for: on a phone the card halves, the image
+comes down with it, and the leftover box showed as dead space above the title -
+44px at 390px, 52px at 360px. `padding-top:50%` is a percentage of the element's
+own width, so the box keeps its 2:1 crop at every card size and the image fills
+it rather than sitting in it.
+
 Every bordered card keeps a 6px gutter between its content and its border - the
 featured tile, the article-list rows and the deal cards. At the default 600px
 block width an article-list row gives 586px of its 599px to content. The deal
@@ -79,7 +96,7 @@ is spacing between two elements, not between an element and the border.
 | Featured Article | Bordered hero card, entirely clickable: headline, dek, image, summary, Read More pill |
 | Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
 | Article List | Thumbnail at 40% of the tile + title + subtitle rows; starts with 5 empty tiles |
-| Deal Grid | Product cards, 2 per row, auto `SAVE x%` badge |
+| Deal Grid | Product cards, 2 per row, equal height, 2:1 image crop, auto `SAVE x%` badge |
 | Link List | Numbered rows of linked headlines, marker in the brand accent |
 | Disclaimer | Italic affiliate footnote |
 | Custom HTML | Raw markup, passed through untouched |
