@@ -37,10 +37,10 @@ That is how the four sections originally drifted apart:
 | Deal Grid | 560px fixed, cards inset 4px | 560px, cards flush |
 | Link List | client-default `<ul>` indent | 560px, bullets flush |
 
-Block-level tables still declare a `width` attribute beside `max-width`, which
-costs nothing in modern clients and holds the newsletter to its column in
-Outlook. Images do not: they are percentage-only. The Link List is built from
-table rows rather
+Widths are declared twice throughout - a `width` attribute beside the CSS. The
+attribute costs nothing in modern clients, which use the CSS and still shrink on
+mobile, and it is the only thing classic Outlook for Windows can read. The Link
+List is built from table rows rather
 than a `<ul>` because every email client applies its own list indent and
 Outlook's cannot be overridden.
 
@@ -101,7 +101,7 @@ is spacing between two elements, not between an element and the border.
 
 | Block | Output |
 |---|---|
-| Featured Article | Bordered hero card, entirely clickable: headline, dek, image, summary, Read More pill |
+| Featured Article | Bordered hero card: headline, dek, image, summary, Read More pill - headline, image and button each linked |
 | Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
 | Article List | Thumbnail at 40% of the tile + title + subtitle rows; starts with 5 empty tiles |
 | Deal Grid | Product cards, 2 per row, equal height, 2:1 image crop, auto `SAVE x%` badge |
@@ -158,10 +158,51 @@ of tune and no media query needed for it at all:
 | 375px 13 mini | 130px | 118px | 195px | 40% |
 | 320px SE | 108px | 96px | 162px | 40% |
 
-Images carry no pixel width at all - `width:100%` inside a percentage cell, at
-every block. Outlook's Word engine ignores percentage widths on an image and
-will fall back to the file's intrinsic size there; that is an accepted
-trade-off rather than something to design around.
+### Every image declares a pixel width
+
+Classic Outlook for Windows - 2007 to 2021 and the Microsoft 365 desktop app -
+renders with Word's engine, not a browser's. It ignores `max-width`, percentage
+widths and `height:auto` on an image, so with nothing else to go on it lays each
+one out at its natural size. CMS uploads are routinely 1,200-2,000px, which is
+how images ended up bursting out of a 600px layout. The thumbnails were worst:
+a 40% cell cannot hold a full-size image, so the image pushed the cell and took
+the whole card wider with it.
+
+Every `<img>` therefore carries a `width` attribute, a bare number, alongside
+the CSS. Word reads the attribute and scales the height to match, so no `height`
+attribute is wanted; every other client uses the CSS and still shrinks on mobile.
+
+| Image | Attribute | Derivation at a 600px block width |
+|---|---|---|
+| Featured hero | `586` | `600 − 2` border `− 12` padding |
+| Article thumbnail | `222` | 40% of the 586 card, less the 12px gutter |
+| Deal card | `294` | card `(600−8)/2 = 296`, less its 1px border a side |
+
+The thumbnail cell carries `width="234"` for the same reason. Its CSS stays
+`width:40%` rather than a pixel value, so the column still scales on a phone -
+the attribute is what Word reads and the percentage is what everyone else does.
+All of these recalculate from **Block width**.
+
+### The featured card is three links, not one
+
+It used to be a single `<a>` wrapping the whole tile with `display:block` and
+6px of padding. Word does not allow a link to wrap block elements and ignores
+padding on an `<a>`, so in Outlook that padding vanished and parts of the card
+stopped being clickable. The padding is on the `<td>` now, and the headline,
+image and button are linked separately.
+
+### Not handled here: high-DPI scaling
+
+On Windows at 125% or 150% display scaling, Outlook can scale images a second
+time. The fix belongs in the CMS template's `<head>`, which this tool does not
+emit - it produces a fragment. Add to the template:
+
+```html
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+```
+
+and give the `<html>` tag `xmlns:o="urn:schemas-microsoft-com:office:office"`,
+which that snippet needs in order to work.
 
 **Dark mode follows the reader.** `prefers-color-scheme: dark` repaints the card
 surfaces, borders and text through the `nl-card` / `nl-strong` / `nl-body` /

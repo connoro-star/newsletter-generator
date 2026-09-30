@@ -406,14 +406,25 @@ ${inner}
 </table>`;
 }
 
-function gFeatured(b, s) {
-  const B = s.width, rgb = hexToRgb(s.accent);
-  const out = [];
+/* Inner width of the featured card: the block width less the 1px border and
+   6px padding on each side. Outlook's Word engine ignores max-width, percentage
+   widths and height:auto on an image, so this is the pixel width the hero image
+   declares as an attribute for it to read. */
+const innerWidth = B => B - 14;
 
-  /* The whole tile is one link, so nothing inside may be an anchor of its own -
-     nested <a> is invalid and the parser breaks it apart. The headline, image
-     and button are therefore plain elements, and every text colour is stated
-     explicitly so the card never inherits default link blue or an underline. */
+function gFeatured(b, s) {
+  const B = s.width, C = innerWidth(B), rgb = hexToRgb(s.accent);
+  const out = [];
+  const u = b.articleUrl ? escUrl(b.articleUrl) : '';
+
+  /* The headline, image and button are linked separately rather than the whole
+     tile being wrapped in one anchor. Word does not allow a link to wrap block
+     elements and ignores padding on an <a>, so that wrapper lost its 6px and
+     left parts of the card unclickable. Each anchor states its own colour and
+     kills its underline, so nothing inherits default link blue. */
+  const linkText = (inner, colour) => u
+    ? `<a href="${u}" target="_blank" style="color:${colour};text-decoration:none;">${inner}</a>`
+    : inner;
 
   if (b.headline) {
     /* The whole tile now sits on one 6px rhythm, so the headline keeps the same
@@ -424,7 +435,7 @@ function gFeatured(b, s) {
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
 \t\t\t\t\t\t\t<td style="padding-bottom: ${headGap}px;">
-\t\t\t\t\t\t\t<h2 class="nl-strong" style="margin: 0px; font-size: 20px; color: #000000;">${esc(b.headline)}</h2>
+\t\t\t\t\t\t\t<h2 class="nl-strong" style="margin: 0px; font-size: 20px; color: #000000;">${linkText(esc(b.headline), '#000000')}</h2>
 \t\t\t\t\t\t\t</td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
@@ -437,7 +448,7 @@ function gFeatured(b, s) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;"><img alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></td>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;">${u ? `<a href="${u}" target="_blank" style="display:block;line-height:0;font-size:0;text-decoration:none;">` : ''}<img width="${C}" alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" />${u ? '</a>' : ''}</td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
@@ -449,26 +460,16 @@ function gFeatured(b, s) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><span style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</span></td>
+\t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><${u ? 'a' : 'span'}${u ? ` href="${u}" target="_blank"` : ''} style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</${u ? 'a' : 'span'}></td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
   }
 
-  const inner = out.join('\n\n');
-
-  /* Padding sits on the link, not the cell, so the click target covers the
-     whole bordered tile rather than stopping at the content edge. */
-  const wrapped = b.articleUrl
-    ? `\t\t\t<a href="${escUrl(b.articleUrl)}" class="nl-body" style="display:block;padding:6px;color:#333333;text-decoration:none;" target="_blank">
-${inner}
-\t\t\t</a>`
-    : `\t\t\t<div style="padding:6px;">
-${inner}
-\t\t\t</div>`;
-
-  return shell(wrapped, B,
-    'padding:0;border:1px solid rgb(220, 220, 220);border-radius:10px;',
+  /* The padding is on the cell now, which Word honours, rather than on an
+     anchor it would have ignored. */
+  return shell(out.join('\n\n'), B,
+    'padding:6px;border:1px solid rgb(220, 220, 220);border-radius:10px;',
     'margin:0 auto 16px;', 'nl-card');
 }
 
@@ -480,12 +481,19 @@ function gHeading(b, s) {
 
 function gHits(b, s) {
   const B = s.width, P = TYPES.hits.thumbPct;
-  /* The cell is a percentage so the image keeps its share of the tile at any
-     width, phone included, with no breakpoint to drift out of tune. */
+  /* The CSS width stays a percentage, so the thumbnail keeps its share of the
+     row at any width, phone included, with no breakpoint to drift out of tune.
+     The pixel widths beside it are for Word, which ignores percentages and
+     max-width and would otherwise lay the image out at its natural size -
+     1,200px and up from the CMS - pushing the cell and the whole card wider.
+     CELL is 40% of the card's inner width; the image is that less the 12px
+     gutter to the headline. */
+  const CELL = Math.round(innerWidth(B) * P / 100);
+  const IMG = CELL - 12;
   return b.items.filter(i => i.title || i.url).map(i => {
     const u = escUrl(i.url);
     const thumb = i.imageUrl
-      ? `<a href="${u}" target="_blank" style="display:block;line-height:0;font-size:0;"><img class="nl-thumb" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: 100%; height: auto;" /></a>`
+      ? `<a href="${u}" target="_blank" style="display:block;line-height:0;font-size:0;"><img class="nl-thumb" width="${IMG}" alt="${esc(i.imageAlt)}" src="${escUrl(i.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${IMG}px; height: auto;" /></a>`
       : '&nbsp;';
     const sub = i.subtitle
       ? `<span class="nl-muted" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:400;color:#6B7280;line-height:1.5;">${esc(i.subtitle)}</span>`
@@ -493,7 +501,7 @@ function gHits(b, s) {
     const inner = `\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;" width="100%">
 \t\t\t\t<tbody>
 \t\t\t\t\t<tr>
-\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;vertical-align:middle;" valign="middle" width="${P}%">${thumb}</td>
+\t\t\t\t\t\t<td class="nl-thumb-cell" align="center" style="padding:0 12px 0 0;width:${P}%;vertical-align:middle;" valign="middle" width="${CELL}">${thumb}</td>
 \t\t\t\t\t\t<td style="padding:0;" valign="top"><a href="${u}" style="text-decoration:none;display:block;"><span class="nl-strong" style="display:block;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:700;color:#000000;line-height:1.3;margin:0 0 4px;">${esc(i.title)}</span>${sub}</a></td>
 \t\t\t\t\t</tr>
 \t\t\t\t</tbody>
@@ -534,7 +542,7 @@ function dealCell(i, s, W2) {
      card halving does not leave the image short of its box. A client that drops
      <style> keeps the 150px, which crops rather than stretches. */
   const imgHtml = i.imageUrl
-    ? `<div class="nl-deal-img" style="height:150px;overflow:hidden;line-height:0;font-size:0;border-radius:12px 12px 0 0;"><a href="${u}" rel="noopener noreferrer" target="_blank"><img alt="${esc(i.imageAlt || i.title)}" src="${escUrl(i.imageUrl)}" style="display:block;width:100%;max-width:100%;height:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#666;" /></a></div>`
+    ? `<div class="nl-deal-img" style="height:150px;overflow:hidden;line-height:0;font-size:0;border-radius:12px 12px 0 0;"><a href="${u}" rel="noopener noreferrer" target="_blank"><img width="${W2 - 2}" alt="${esc(i.imageAlt || i.title)}" src="${escUrl(i.imageUrl)}" style="display:block;width:100%;max-width:${W2 - 2}px;height:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#666;" /></a></div>`
     : '';
 
   return `\t\t\t<td class="nl-card" align="center" valign="top" style="width:50%;border:1px solid #e5e5e7;border-radius:12px;background-color:#FFFFFF;" width="${W2}">
