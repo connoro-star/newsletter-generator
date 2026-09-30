@@ -70,12 +70,20 @@ ignored and the shorter card stayed short. The 8px gutter is its own spacer
 cell, which is what frees the card cells of the padding that used to hold it.
 The title reserves two lines, so the price and button line up across a row.
 
-The image crop is a ratio rather than a height. A fixed 150px box matched the
-image only at the width it was tuned for: on a phone the card halves, the image
-comes down with it, and the leftover box showed as dead space above the title -
-44px at 390px, 52px at 360px. `padding-top:50%` is a percentage of the element's
-own width, so the box keeps its 2:1 crop at every card size and the image fills
-it rather than sitting in it.
+The image is restricted by a fixed-height box with `overflow:hidden`, stepped
+down for narrow screens by `.nl-deal-img` in the stylesheet: 150px, 96px under
+600px, 88px under 375px. The card halves on a phone and its image comes down
+with it, so the crop has to come down too or the image falls short of its box
+and the gap shows above the title.
+
+This deliberately does not use a `padding-top` ratio box with an absolutely
+positioned image. That keeps the crop proportional at every width, but it
+depends on `position`, and where a client strips `position` the reserved box
+stays while the image stacks underneath it - measured at 356px against an
+intended 250px. `overflow:hidden` cannot do that: it crops whatever the image
+turns out to be, so the worst case is a gap rather than a card twice the height
+it should be. A client that drops `<style>` keeps the 150px and gets that gap on
+a phone.
 
 Every bordered card keeps a 6px gutter between its content and its border - the
 featured tile, the article-list rows and the deal cards. At the default 600px
