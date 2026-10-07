@@ -97,6 +97,33 @@ The blocks themselves have no outer gutter: at a 600px block width they span the
 The 12px gutter between an article-list thumbnail and its headline stays - that
 is spacing between two elements, not between an element and the border.
 
+## The Add Us button
+
+A Section Heading can carry a **Google "Add Us"** pill on its right-hand side,
+linking to Google's preferred-sources page so a reader can add the publication
+as a preferred source in Search. Tick **Show the Google "Add Us" button** on the
+heading block. It is off by default and on for the first heading of a new issue,
+which is where it is meant to sit - it reads as a one-per-issue call to action
+rather than a decoration on every section.
+
+The domain comes from the `SITES` map, like the affiliate tag and the
+disclaimer's wording, so an MUO issue points at `makeuseof.com` rather than
+sending its readers to add Android Police. **Custom** has no domain, so the
+button is not rendered at all rather than guessing at one.
+
+Two deliberate departures from the rest of the template:
+
+- It is black and white rather than the brand accent, because the pill is
+  Google's styling, not ours. Dark mode inverts it to a white pill with black
+  text.
+- The Google logo carries a `height` attribute as well as a `width`. Every other
+  image omits height so Word can scale it from the width; this is a fixed 18px
+  icon, where stating both is correct.
+
+The logo is hotlinked from `gstatic.com`, which means a request to Google on
+every open. Self-hosting it alongside the other newsletter images would remove
+that and the dependency on Google keeping the path alive.
+
 ## Blocks
 
 | Block | Output |
@@ -337,14 +364,15 @@ block.
 
 ## Sites
 
-The **Site** selector fills in that site's accent colour, Amazon affiliate tag
-and the publication named in the affiliate disclaimer:
+The **Site** selector fills in that site's accent colour, Amazon affiliate tag,
+the publication named in the affiliate disclaimer, and the domain the Add Us
+button points at:
 
-| Site | Accent | Affiliate tag | Disclaimer names |
-|---|---|---|---|
-| AP - Android Police | `#e01a4f` | `ap-newsletter04-20` | Android Police |
-| MUO - MakeUseOf | `#c70016` | `mak0954-20` | MakeUseOf |
-| PL - Pocket-lint | `#f01e25` | `pl-newsletter-20` | Pocket-lint |
+| Site | Accent | Affiliate tag | Disclaimer names | Add Us domain |
+|---|---|---|---|---|
+| AP - Android Police | `#e01a4f` | `ap-newsletter04-20` | Android Police | `androidpolice.com` |
+| MUO - MakeUseOf | `#c70016` | `mak0954-20` | MakeUseOf | `makeuseof.com` |
+| PL - Pocket-lint | `#f01e25` | `pl-newsletter-20` | Pocket-lint | `pocket-lint.com` |
 
 The accent recolours the byline link, the Read More pill and the GET DEAL
 buttons together. Both fields stay editable after picking a site; editing either

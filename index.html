@@ -87,6 +87,11 @@
   .bsub{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
   .block-body{padding:12px}
   .field{margin-bottom:10px}
+  /* .field label uppercases every field name; a checkbox carries a sentence,
+     so this needs the extra specificity to read normally. */
+  .field label.checkrow{display:flex;align-items:center;gap:8px;cursor:pointer;
+    font-size:12px;text-transform:none;letter-spacing:0;color:var(--text);margin:0}
+  .checkrow input{width:auto;margin:0;accent-color:var(--accent);cursor:pointer}
   .field:last-child{margin-bottom:0}
   .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -241,9 +246,9 @@ const num = v => {
    with the label.
    ============================================================ */
 const SITES = {
-  AP:  { name: 'Android Police', accent: '#e01a4f', tag: 'ap-newsletter04-20' },
-  MUO: { name: 'MakeUseOf',      accent: '#c70016', tag: 'mak0954-20' },
-  PL:  { name: 'Pocket-lint',    accent: '#f01e25', tag: 'pl-newsletter-20' }
+  AP:  { name: 'Android Police', accent: '#e01a4f', tag: 'ap-newsletter04-20', source: 'androidpolice.com' },
+  MUO: { name: 'MakeUseOf',      accent: '#c70016', tag: 'mak0954-20',         source: 'makeuseof.com' },
+  PL:  { name: 'Pocket-lint',    accent: '#f01e25', tag: 'pl-newsletter-20',   source: 'pocket-lint.com' }
 };
 
 /* The disclaimer names the publication, so it has to follow the site selector
@@ -300,8 +305,11 @@ const TYPES = {
     label: 'Section Heading',
     add: 'Heading',
     summary: b => b.text,
-    defaults: () => ({ text: 'Today’s Hits' }),
-    fields: [{ k: 'text', l: 'Heading text', t: 'text' }]
+    defaults: () => ({ text: 'Today’s Hits', addUs: false }),
+    fields: [
+      { k: 'text',  l: 'Heading text', t: 'text' },
+      { k: 'addUs', l: 'Show the Google "Add Us" button', t: 'checkbox' }
+    ]
   },
 
   hits: {
@@ -394,13 +402,13 @@ const TYPES = {
    Outlook, max-width for everything else.
    ============================================================ */
 
-function shell(inner, B, tdStyle, tableExtra = '', tdClass = '') {
+function shell(inner, B, tdStyle, tableExtra = '', tdClass = '', extraCell = '') {
   return `<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:${B}px;margin:0 auto;${tableExtra}border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" width="${B}">
 \t<tbody>
 \t\t<tr>
 \t\t\t<td${tdClass ? ` class="${tdClass}"` : ''} style="${tdStyle}">
 ${inner}
-\t\t\t</td>
+\t\t\t</td>${extraCell ? '\n' + extraCell : ''}
 \t\t</tr>
 \t</tbody>
 </table>`;
@@ -423,7 +431,7 @@ function gFeatured(b, s) {
      left parts of the card unclickable. Each anchor states its own colour and
      kills its underline, so nothing inherits default link blue. */
   const linkText = (inner, colour) => u
-    ? `<a href="${u}" target="_blank" style="color:${colour};text-decoration:none;">${inner}</a>`
+    ? `<a href="${u}" target="_blank" rel="noopener noreferrer" style="color:${colour};text-decoration:none;">${inner}</a>`
     : inner;
 
   if (b.headline) {
@@ -448,7 +456,7 @@ function gFeatured(b, s) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;">${u ? `<a href="${u}" target="_blank" style="display:block;line-height:0;font-size:0;text-decoration:none;">` : ''}<img width="${C}" alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" />${u ? '</a>' : ''}</td>
+\t\t\t\t\t\t\t<td align="center" style="padding-bottom: 6px;">${u ? `<a href="${u}" target="_blank" rel="noopener noreferrer" style="display:block;line-height:0;font-size:0;text-decoration:none;">` : ''}<img width="${C}" alt="${esc(b.imageAlt)}" src="${escUrl(b.imageUrl)}" style="display:block; border-width: 0px; border-style: none; border-color: currentcolor; border-radius: 10px; width: 100%; max-width: ${C}px; height: auto;" />${u ? '</a>' : ''}</td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
@@ -460,7 +468,7 @@ function gFeatured(b, s) {
     out.push(`\t\t\t\t<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;" width="100%">
 \t\t\t\t\t<tbody>
 \t\t\t\t\t\t<tr>
-\t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><${u ? 'a' : 'span'}${u ? ` href="${u}" target="_blank"` : ''} style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</${u ? 'a' : 'span'}></td>
+\t\t\t\t\t\t\t<td align="right" style="text-align: right; padding-bottom: 0px;"><${u ? 'a' : 'span'}${u ? ` href="${u}" target="_blank" rel="noopener noreferrer"` : ''} style="color: ${rgb}; border: 2px solid ${rgb}; padding: 10px 20px; text-decoration: none; display: inline-block; width: 180px; min-width: 180px; text-align: center; border-radius: 30px; font-weight: bold;">${esc(b.cta)} &raquo;&nbsp;</${u ? 'a' : 'span'}></td>
 \t\t\t\t\t\t</tr>
 \t\t\t\t\t</tbody>
 \t\t\t\t</table>`);
@@ -473,10 +481,34 @@ function gFeatured(b, s) {
     'margin:0 auto 16px;', 'nl-card');
 }
 
+/* Google's preferred-sources page, pointed at whichever site is selected. The
+   domain comes from the SITES map for the same reason the affiliate tag and the
+   disclaimer's name do - hardcoding one would send MUO and PL readers off to add
+   Android Police. Custom has no domain, so the button is not rendered rather
+   than guessing at one.
+
+   The logo keeps a height attribute, unlike every other image here. That rule
+   exists so Word scales a photo from its width; this is a fixed 18px icon,
+   where stating both is correct. */
+function addUsCell(s) {
+  const src = (SITES[s.site] || {}).source;
+  if (!src) return '';
+  const href = escUrl('https://www.google.com/preferences/source?q=' + src);
+  return `\t\t\t<td align="right" valign="middle" style="padding:0 0 20px 12px;white-space:nowrap;">
+\t\t\t<table align="right" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;">
+\t\t\t\t<tbody>
+\t\t\t\t\t<tr>
+\t\t\t\t\t\t<td class="nl-gbtn" bgcolor="#000000" style="background-color:#000000;border-radius:999px;padding:2px;"><a href="${href}" target="_blank" rel="noopener noreferrer" style="display:block;border:1px solid #FFFFFF;border-radius:999px;padding:6px 14px 6px 10px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:400;line-height:18px;text-decoration:none;white-space:nowrap;"><img src="https://www.gstatic.com/images/branding/googleg/2x/googleg_standard_color_48dp.png" width="18" height="18" alt="" style="display:inline-block;width:18px;height:18px;border:0;vertical-align:middle;margin-right:6px;" /><span style="vertical-align:middle;">Add Us</span></a></td>
+\t\t\t\t\t</tr>
+\t\t\t\t</tbody>
+\t\t\t</table>
+\t\t\t</td>`;
+}
+
 function gHeading(b, s) {
   return shell(
     `\t\t\t<h2 class="nl-strong" style="margin:0; font-size:20px; color:#333;">${esc(b.text)}</h2>`,
-    s.width, 'padding:0 0 20px 0;');
+    s.width, 'padding:0 0 20px 0;', '', '', b.addUs ? addUsCell(s) : '');
 }
 
 function gHits(b, s) {
@@ -637,7 +669,9 @@ const DARK_RULES = `
   .nl-card { background-color:#1c1c1f !important; border-color:#34343a !important; }
   .nl-body, .nl-body * { color:#d6d6db !important; }
   .nl-strong, .nl-strong * { color:#f5f5f7 !important; }
-  .nl-muted, .nl-muted * { color:#9b9ba3 !important; }`;
+  .nl-muted, .nl-muted * { color:#9b9ba3 !important; }
+  .nl-gbtn { background-color:#ffffff !important; }
+  .nl-gbtn a, .nl-gbtn span { color:#000000 !important; }`;
 
 /* One stylesheet for the issue, emitted once at the top of the output.
 
@@ -816,6 +850,11 @@ const blockById = id => state.blocks.find(b => b.id === id);
    EDITOR RENDERING
    ============================================================ */
 function fieldHtml(f, val, path) {
+  /* A checkbox puts its label beside the control rather than above it, and its
+     value is read from .checked rather than .value - see the input handler. */
+  if (f.t === 'checkbox') {
+    return `<div class="field"><label class="checkrow"><input type="checkbox" data-path="${path}"${val ? ' checked' : ''}><span>${f.l}</span></label></div>`;
+  }
   const ph = f.placeholder ? ` placeholder="${f.placeholder}"` : '';
   const common = `class="inp" data-path="${path}"${ph}`;
   let control;
@@ -978,7 +1017,7 @@ $('#blocks').addEventListener('input', e => {
   if (!path) return;
   const r = resolvePath(path);
   if (!r || !r.obj) return;
-  r.obj[r.key] = e.target.value;
+  r.obj[r.key] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
 
   const thumb = e.target.closest('.field')?.querySelector('[data-thumb]');
   if (thumb) {
@@ -1497,7 +1536,7 @@ const SAMPLE = {
       imageAlt: 'A Samsung Galaxy Watch 4 showing Google Assistant on the watchface',
       cta: 'Read More' },
 
-    { type: 'heading', collapsed: true, text: "Today's Hits" },
+    { type: 'heading', collapsed: true, text: "Today's Hits", addUs: true },
 
     { type: 'hits', collapsed: true, items: [
       { url: 'https://www.androidpolice.com/set-up-obsidian-vault-to-organize-itself-havent-touched-folder-structure-in-weeks/',
@@ -1555,7 +1594,7 @@ const DEFAULT_LAYOUT = {
   settings: { site: 'AP', accent: '#e01a4f', width: 600, tag: 'ap-newsletter04-20', v: 2 },
   blocks: [
     { type: 'featured',   collapsed: false },
-    { type: 'heading',    collapsed: false, text: 'Today\u2019s Hits' },
+    { type: 'heading',    collapsed: false, text: 'Today\u2019s Hits', addUs: true },
     { type: 'hits',       collapsed: false },
     { type: 'heading',    collapsed: false, text: 'MOST READ THIS WEEK' },
     { type: 'mostread',   collapsed: false },
