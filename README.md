@@ -120,9 +120,10 @@ Two deliberate departures from the rest of the template:
   image omits height so Word can scale it from the width; this is a fixed 18px
   icon, where stating both is correct.
 
-The logo is hotlinked from `gstatic.com`, which means a request to Google on
-every open. Self-hosting it alongside the other newsletter images would remove
-that and the dependency on Google keeping the path alive.
+The logo is served from the CMS rather than hotlinked from `gstatic.com`, so an
+open makes no request to Google and nothing breaks if Google moves its asset.
+It is a 387px square PNG with a transparent background, which is what lets the
+same file sit on the black pill and on the white one dark mode inverts it to.
 
 ## Blocks
 
