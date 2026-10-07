@@ -129,7 +129,7 @@ that and the dependency on Google keeping the path alive.
 | Block | Output |
 |---|---|
 | Featured Article | Bordered hero card: headline, dek, image, summary, Read More pill - headline, image and button each linked |
-| Section Heading | `Today's Hits` / `MOST READ THIS WEEK` / `CURATED DEALS` style H2 |
+| Section Heading | `Today's Hits` / `Most Read This Week` / `Curated Deals` style H2 |
 | Article List | Thumbnail at 40% of the tile + title + subtitle rows; starts with 5 empty tiles |
 | Deal Grid | Product cards, 2 per row, equal height, 2:1 image crop, auto `SAVE x%` badge |
 | Link List | Numbered rows of linked headlines, number and link text both in the brand accent |
@@ -156,7 +156,7 @@ paragraph:
 - after every deal grid
 - above a link list that is **not** introduced by its own heading - a link list
   running straight on from a deal grid gets its own gap, while one sitting under
-  a `MOST READ THIS WEEK` heading stays tight to that heading
+  a `Most Read This Week` heading stays tight to that heading
 
 Inside the featured tile everything sits on one 6px rhythm: the padding, the gap
 under the headline, the dek, the hero image and the summary paragraph. The gap no
@@ -429,9 +429,9 @@ The layout, which is also what a brand-new session opens on:
 1. Featured Article
 2. Section Heading - `Today's Hits`
 3. Article List - 5 empty rows
-4. Section Heading - `MOST READ THIS WEEK`
+4. Section Heading - `Most Read This Week`
 5. Link List - 5 empty rows
-6. Section Heading - `CURATED DEALS`
+6. Section Heading - `Curated Deals`
 7. Deal Grid
 8. Affiliate Disclaimer
 
