@@ -99,12 +99,18 @@ is spacing between two elements, not between an element and the border.
 
 ## The Add Us button
 
-A Section Heading can carry a **Google "Add Us"** pill on its right-hand side,
+A Section Heading carries a **Google "Add Us"** pill on its right-hand side,
 linking to Google's preferred-sources page so a reader can add the publication
-as a preferred source in Search. Tick **Show the Google "Add Us" button** on the
-heading block. It is off by default and on for the first heading of a new issue,
-which is where it is meant to sit - it reads as a one-per-issue call to action
-rather than a decoration on every section.
+as a preferred source in Search.
+
+It is **on by default on every heading**, and unticking **Show the Google "Add
+Us" button** is the only thing that turns it off. In particular **Clear leaves
+it alone**: the toggle describes the section, like the heading's own text, and
+is not content typed for this issue. An untick therefore sticks - through Clear,
+through a reload, and through the autosave.
+
+A default issue has three headings, so it ships with three buttons. If you want
+it on one heading only, untick the other two once and it stays that way.
 
 The domain comes from the `SITES` map, like the affiliate tag and the
 disclaimer's wording, so an MUO issue points at `makeuseof.com` rather than

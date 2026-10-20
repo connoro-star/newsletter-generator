@@ -794,7 +794,7 @@
           label: "Section Heading",
           add: "Heading",
           summary: (b) => b.text,
-          defaults: () => ({ text: "Today’s Hits", addUs: false }),
+          defaults: () => ({ text: "Today’s Hits", addUs: true }),
           fields: [
             { k: "text", l: "Heading text", t: "text" },
             { k: "addUs", l: 'Show the Google "Add Us" button', t: "checkbox" },
@@ -2233,7 +2233,14 @@ ${rows}
               def.itemDefaults(),
             );
           }
-          if (b.type === "heading") fresh.text = b.text;
+          /* A heading's text and its Add Us toggle both describe the section
+             rather than being content typed for this issue, so Clear leaves
+             them alone. Unticking the box is the only thing that turns the
+             button off. */
+          if (b.type === "heading") {
+            fresh.text = b.text;
+            fresh.addUs = b.addUs;
+          }
           return fresh;
         });
         renderAll();
@@ -2409,12 +2416,7 @@ ${rows}
             cta: "Read More",
           },
 
-          {
-            type: "heading",
-            collapsed: true,
-            text: "Today's Hits",
-            addUs: true,
-          },
+          { type: "heading", collapsed: true, text: "Today's Hits" },
 
           {
             type: "hits",
@@ -2525,12 +2527,7 @@ ${rows}
         },
         blocks: [
           { type: "featured", collapsed: false },
-          {
-            type: "heading",
-            collapsed: false,
-            text: "Today\u2019s Hits",
-            addUs: true,
-          },
+          { type: "heading", collapsed: false, text: "Today\u2019s Hits" },
           { type: "hits", collapsed: false },
           { type: "heading", collapsed: false, text: "Most Read This Week" },
           { type: "mostread", collapsed: false },
