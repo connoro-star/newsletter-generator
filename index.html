@@ -794,7 +794,7 @@
           label: "Section Heading",
           add: "Heading",
           summary: (b) => b.text,
-          defaults: () => ({ text: "Today’s Hits", addUs: true }),
+          defaults: () => ({ text: "Today’s Hits", addUs: false }),
           fields: [
             { k: "text", l: "Heading text", t: "text" },
             { k: "addUs", l: 'Show the Google "Add Us" button', t: "checkbox" },
@@ -2416,7 +2416,7 @@ ${rows}
             cta: "Read More",
           },
 
-          { type: "heading", collapsed: true, text: "Today's Hits" },
+          { type: "heading", collapsed: true, text: "Today's Hits", addUs: true },
 
           {
             type: "hits",
@@ -2527,7 +2527,12 @@ ${rows}
         },
         blocks: [
           { type: "featured", collapsed: false },
-          { type: "heading", collapsed: false, text: "Today\u2019s Hits" },
+          {
+            type: "heading",
+            collapsed: false,
+            text: "Today\u2019s Hits",
+            addUs: true,
+          },
           { type: "hits", collapsed: false },
           { type: "heading", collapsed: false, text: "Most Read This Week" },
           { type: "mostread", collapsed: false },

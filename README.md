@@ -103,14 +103,15 @@ A Section Heading carries a **Google "Add Us"** pill on its right-hand side,
 linking to Google's preferred-sources page so a reader can add the publication
 as a preferred source in Search.
 
-It is **on by default on every heading**, and unticking **Show the Google "Add
-Us" button** is the only thing that turns it off. In particular **Clear leaves
-it alone**: the toggle describes the section, like the heading's own text, and
-is not content typed for this issue. An untick therefore sticks - through Clear,
-through a reload, and through the autosave.
+It sits on the **first heading only** - `Today's Hits` in a new issue - because
+it reads as one call to action per issue rather than a decoration on every
+section. A heading added by hand starts without it.
 
-A default issue has three headings, so it ships with three buttons. If you want
-it on one heading only, untick the other two once and it stays that way.
+**Show the Google "Add Us" button** on any heading block moves it or adds
+another, and the toggle is the only thing that changes it. In particular
+**Clear leaves it alone**: the toggle describes the section, like the heading's
+own text, and is not content typed for this issue. So a tick or an untick
+sticks - through Clear, through a reload, and through the autosave.
 
 The domain comes from the `SITES` map, like the affiliate tag and the
 disclaimer's wording, so an MUO issue points at `makeuseof.com` rather than
